@@ -11,6 +11,7 @@ export type SyncState = {
   subscriberGoal: number;
   triggerVictory: number; // Increment to trigger animation
   chatEvent: ChatEvent | null; // Latest chat event to trigger an alert
+  isPortrait: boolean; // Responsive mode toggle
   socialHandles: {
     youtube: string;
     instagram: string;
@@ -24,6 +25,7 @@ const DEFAULT_STATE: SyncState = {
   subscriberGoal: 100,
   triggerVictory: 0,
   chatEvent: null,
+  isPortrait: false,
   socialHandles: {
     youtube: '/DragXQueen',
     instagram: '@DragXQueenIG',

@@ -101,7 +101,7 @@ export default function OverlayView({ layout = 'landscape' }: { layout?: 'landsc
   };
 
   return (
-    <div className={`${styles.overlayContainer} ${layout === 'vertical' ? styles.vertical : ''}`}>
+    <div className={`${styles.overlayContainer} ${(state.isPortrait || layout === 'vertical') ? styles.vertical : ''}`}>
       
       {/* Live Social Ticker */}
       <div className={styles.tickerContainer}>

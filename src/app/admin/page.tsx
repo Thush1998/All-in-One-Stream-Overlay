@@ -208,6 +208,22 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Responsive Controls */}
+        <div className={styles.card}>
+          <h2 className={styles.cardTitle}>Responsive Controls</h2>
+          <div className={styles.inputGroup}>
+            <p className={styles.label} style={{marginBottom: '1rem'}}>
+              Instantly toggle the primary overlay into Portrait Mode (9:16) for horizontal monitors.
+            </p>
+            <button 
+              className={`${styles.button} ${state.isPortrait ? styles.buttonPink : ''}`} 
+              onClick={() => updateState({ isPortrait: !state.isPortrait })}
+            >
+              {state.isPortrait ? "📴 Disable Portrait Mode" : "📱 Enable Portrait Mode"}
+            </button>
+          </div>
+        </div>
+
         {/* Chat Alerts Card */}
         <div className={styles.card}>
           <h2 className={styles.cardTitle}>Chat Simulator</h2>
