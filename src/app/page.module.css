@@ -1,0 +1,81 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.header {
+  margin-bottom: 3rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 3rem;
+  color: var(--neon-cyan);
+  text-shadow: 0 0 10px var(--neon-cyan-glow);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.main {
+  display: flex;
+  gap: 2rem;
+  max-width: 800px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.linkCard {
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 2rem;
+  flex: 1;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 1rem;
+  backdrop-filter: blur(var(--glass-blur));
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.linkCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--neon-cyan);
+  box-shadow: 0 5px 20px var(--neon-cyan-glow);
+}
+
+.linkCard h2 {
+  color: var(--neon-pink);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.linkCard p {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.linkButton {
+  background: transparent;
+  color: var(--neon-cyan);
+  border: 2px solid var(--neon-cyan);
+  padding: 0.8rem 1.5rem;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+  width: 100%;
+}
+
+.linkButton:hover {
+  background: var(--neon-cyan);
+  color: var(--darker-grey);
+  box-shadow: 0 0 20px var(--neon-cyan-glow);
+}

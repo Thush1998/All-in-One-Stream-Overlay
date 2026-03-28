@@ -1,0 +1,313 @@
+.overlayContainer {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: transparent !important;
+}
+
+:global(body) {
+  background: transparent !important;
+}
+
+/* -- Facecam Frame -- */
+.facecamContainer {
+  position: absolute;
+  bottom: 40px;
+  right: 40px;
+  width: 320px;
+  height: 180px;
+  border: 3px solid var(--neon-cyan);
+  border-radius: 8px;
+  box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow);
+  background: transparent;
+  animation: borderPulse 4s infinite alternate;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  overflow: hidden;
+  transition: box-shadow 0.1s ease-out;
+}
+
+@keyframes borderPulse {
+  0% { border-color: var(--neon-cyan); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow); }
+  100% { border-color: var(--neon-pink); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow); }
+}
+
+.facecamText {
+  background: rgba(10, 10, 15, 0.8);
+  width: 100%;
+  text-align: center;
+  padding: 6px 0;
+  font-weight: 900;
+  font-size: 1rem;
+  color: #fff;
+  border-top: 1px solid var(--neon-pink);
+  text-shadow: 0 0 5px var(--neon-pink);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  animation: glitch 4s infinite;
+}
+
+/* -- Marquee Ticker -- */
+.tickerContainer {
+  position: absolute;
+  top: 20px;
+  left: 40px;
+  width: 350px;
+  overflow: hidden;
+  background: var(--glass-bg);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 8px;
+  box-shadow: 0 0 10px var(--neon-cyan-glow);
+  backdrop-filter: blur(var(--glass-blur));
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  white-space: nowrap;
+}
+
+.tickerWrapper {
+  display: inline-flex;
+  animation: scrollTicker 10s linear infinite;
+}
+
+.tickerItem {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 20px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+.tickerItem span:first-child {
+  color: #fff;
+  margin-right: 8px;
+  text-shadow: 0 0 5px #fff;
+}
+.tickerItem span:last-child {
+  color: var(--neon-cyan);
+}
+.tickerItem.pink span:last-child {
+  color: var(--neon-pink);
+}
+
+@keyframes scrollTicker {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); } 
+}
+
+/* -- Dynamic Subscriber Goal Box -- */
+.goalBox {
+  position: absolute;
+  top: 20px;
+  right: 40px;
+  background: rgba(10, 10, 15, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-top-color: var(--neon-pink);
+  border-bottom-color: var(--neon-cyan);
+  padding: 15px 25px;
+  border-radius: 12px;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 20px rgba(255, 0, 85, 0.1);
+  min-width: 300px;
+  transition: all 0.3s ease;
+}
+
+.goalBox.completed {
+  border-color: #00ff00;
+  box-shadow: 0 0 30px rgba(0, 255, 0, 0.4), inset 0 0 20px rgba(0, 255, 0, 0.2);
+  border-top-color: #00ff00;
+  border-bottom-color: #00ff00;
+}
+
+.goalTitle {
+  color: #fff;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  text-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+
+.goalNumbers {
+  display: flex;
+  justify-content: space-between;
+  color: var(--neon-pink);
+  font-weight: bold;
+  font-size: 1.2rem;
+  text-shadow: 0 0 8px var(--neon-pink-glow);
+  margin-bottom: 10px;
+}
+
+.goalBox.completed .goalNumbers {
+  color: #00ff00;
+  text-shadow: 0 0 8px rgba(0,255,0,0.8);
+}
+
+.barContainer {
+  background: var(--darker-grey);
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #333;
+}
+
+.barFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--neon-pink), var(--neon-cyan));
+  box-shadow: 0 0 10px var(--neon-pink-glow);
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.goalBox.completed .barFill {
+  background: #00ff00;
+  box-shadow: 0 0 10px #00ff00;
+}
+
+/* Fireworks effect using CSS */
+.fireworksOverlay {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.goalReachedText {
+  font-size: 5rem;
+  font-weight: 900;
+  color: #00ff00;
+  text-transform: uppercase;
+  text-shadow: 0 0 20px #00ff00, 0 0 40px #00ff00, 4px 4px 0 #fff;
+  animation: popBounce 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+  z-index: 51;
+}
+
+@keyframes popBounce {
+  0% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.glimmer {
+  position: absolute;
+  width: 15px; height: 15px;
+  background: #0f0;
+  border-radius: 50%;
+  box-shadow: 0 0 15px #0f0, 0 0 30px #0f0;
+  animation: explode 2.5s ease-out forwards;
+}
+
+@keyframes explode {
+  0% { transform: scale(1) translate(0, 0); opacity: 1; }
+  100% { transform: scale(0) translate(var(--tx), var(--ty)); opacity: 0; }
+}
+
+/* -- Chat Alerts -- */
+.chatPopup {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  background: var(--glass-bg);
+  border-left: 4px solid var(--neon-cyan);
+  padding: 15px 25px;
+  border-radius: 8px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 20px var(--neon-cyan-glow);
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  animation: slideInUp 0.5s ease forwards, slideOutDown 0.5s ease 4s forwards;
+  z-index: 100;
+}
+.chatPopup.queenAlert {
+  border-left-color: var(--neon-pink);
+  box-shadow: 0 0 20px var(--neon-pink-glow);
+}
+
+.chatIcon {
+  font-size: 2.5rem;
+}
+.chatContent h4 {
+  color: #fff;
+  margin-bottom: 5px;
+  font-size: 1.2rem;
+  text-shadow: 0 0 5px #fff;
+}
+.chatContent p {
+  color: var(--neon-cyan);
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+.chatPopup.queenAlert .chatContent p {
+  color: var(--neon-pink);
+}
+
+@keyframes slideInUp {
+  0% { transform: translateY(100px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes slideOutDown {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(150px); opacity: 0; }
+}
+
+/* Victory overlay */
+.victoryOverlay {
+  position: absolute;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  display: flex; justify-content: center; align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 1000; opacity: 0; pointer-events: none;
+}
+.victoryOverlay.active { animation: victoryFade 4s forwards; }
+.victoryText {
+  font-size: 6rem; font-weight: 900; color: var(--neon-cyan); text-transform: uppercase;
+  text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--neon-cyan), 0 0 80px var(--neon-cyan), 4px 4px 0 var(--neon-pink);
+  transform: scale(0.5); opacity: 0;
+}
+.victoryOverlay.active .victoryText { animation: victoryPop 4s forwards; }
+@keyframes victoryFade { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes victoryPop { 0% { transform: scale(0.5); opacity: 0; } 15% { transform: scale(1.2); opacity: 1; } 25% { transform: scale(1) rotate(-5deg); opacity: 1; } 35% { transform: scale(1.1) rotate(5deg); opacity: 1; } 50% { transform: scale(1) rotate(0); opacity: 1; } 80% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.5); opacity: 0; filter: blur(10px); } }
+
+/* -- QR Code Container -- */
+.qrContainer {
+  position: absolute;
+  bottom: 40px;
+  left: 40px;
+  background: var(--glass-bg);
+  border: 1px solid var(--neon-cyan);
+  padding: 10px;
+  border-radius: 8px;
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 0 15px var(--neon-cyan-glow);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.qrContainer img {
+  border-radius: 4px;
+}
+.qrText {
+  margin-top: 8px;
+  color: var(--neon-pink);
+  font-weight: bold;
+  font-size: 0.8rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+/* Enhanced Particles for Victory */
+.fullscreenParticles {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 999;
+}
