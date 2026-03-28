@@ -2,7 +2,7 @@
 
 import { useSync, ChatEvent } from '@/lib/useSync';
 import { useState, useEffect, useRef } from 'react';
-import styles from './overlay.module.css';
+import styles from '@/app/overlay/overlay.module.css';
 
 function useAudioResponsive(ref: React.RefObject<HTMLDivElement | null>) {
   useEffect(() => {
@@ -51,7 +51,7 @@ function useAudioResponsive(ref: React.RefObject<HTMLDivElement | null>) {
   }, [ref]);
 }
 
-export default function Overlay() {
+export default function OverlayView({ layout = 'landscape' }: { layout?: 'landscape' | 'vertical' }) {
   const { state } = useSync();
   const facecamRef = useRef<HTMLDivElement>(null);
   useAudioResponsive(facecamRef);
@@ -101,7 +101,7 @@ export default function Overlay() {
   };
 
   return (
-    <div className={styles.overlayContainer}>
+    <div className={`${styles.overlayContainer} ${layout === 'vertical' ? styles.vertical : ''}`}>
       
       {/* Live Social Ticker */}
       <div className={styles.tickerContainer}>

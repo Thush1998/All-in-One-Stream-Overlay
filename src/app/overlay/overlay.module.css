@@ -308,3 +308,52 @@
   pointer-events: none;
   z-index: 999;
 }
+
+/* -- Vertical Layout Specifics -- */
+
+/* Stack Facecam at the top and make it Square/Vertical */
+.overlayContainer.vertical .facecamContainer {
+  bottom: auto;
+  top: 40px;
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 380px;
+  height: 480px;
+}
+
+/* Ensure facecam pulse animation retains center transform */
+@keyframes borderPulseVertical {
+  0% { transform: translateX(-50%); border-color: var(--neon-cyan); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow); }
+  100% { transform: translateX(-50%); border-color: var(--neon-pink); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow); }
+}
+
+.overlayContainer.vertical .facecamContainer {
+  animation: borderPulseVertical 4s infinite alternate;
+}
+
+/* Stack Ticker at the very bottom */
+.overlayContainer.vertical .tickerContainer {
+  top: auto;
+  bottom: 0px;
+  left: 0px;
+  width: 100%;
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+}
+
+/* Shift Goal Box in vertical so it doesn't overlap facecam */
+.overlayContainer.vertical .goalBox {
+  top: 550px;
+  right: auto;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Ensure chat popup stays visible above ticker */
+.overlayContainer.vertical .chatPopup {
+  bottom: 70px;
+}
+
