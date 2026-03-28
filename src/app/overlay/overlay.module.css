@@ -311,47 +311,110 @@
 
 /* -- Vertical Layout Specifics -- */
 
-/* Stack Facecam at the top and make it Square/Vertical */
-.overlayContainer.vertical .facecamContainer {
-  bottom: auto;
-  top: 80px;
-  right: auto;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 380px;
-  height: 480px;
+/* Convert main container to Flexbox for portrait mode */
+.overlayContainer.vertical {
+  display: flex !important;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 80px 20px 120px 20px; /* Safe zones: Top 80px, Bottom 120px */
+  box-sizing: border-box;
 }
 
-/* Ensure facecam pulse animation retains center transform */
+/* Base reset for elements that were absolute in landscape */
+.overlayContainer.vertical .facecamContainer,
+.overlayContainer.vertical .goalBox,
+.overlayContainer.vertical .tickerContainer,
+.overlayContainer.vertical .chatPopup,
+.overlayContainer.vertical .logoContainer {
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  right: auto !important;
+  transform: none !important;
+  margin: 0;
+  box-sizing: border-box;
+  width: 100%; /* Default to full width to prevent overflow */
+}
+
+/* 1. At the very top: Facecam */
+.overlayContainer.vertical .facecamContainer {
+  order: 1;
+  max-width: 380px;
+  height: 380px; /* Square Format */
+  margin-bottom: 20px !important;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+/* Ensure facecam pulse animation retains normal layout */
 @keyframes borderPulseVertical {
-  0% { transform: translateX(-50%); border-color: var(--neon-cyan); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow); }
-  100% { transform: translateX(-50%); border-color: var(--neon-pink); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow); }
+  0% { transform: none; border-color: var(--neon-cyan); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow); }
+  100% { transform: none; border-color: var(--neon-pink); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow); }
 }
 
 .overlayContainer.vertical .facecamContainer {
   animation: borderPulseVertical 4s infinite alternate;
 }
 
-/* Stack Ticker at the bottom safe-zone */
-.overlayContainer.vertical .tickerContainer {
-  top: auto;
-  bottom: 120px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-/* Shift Goal Box in vertical so it doesn't overlap facecam */
+/* 2. Immediately below facecam: Goal Box */
 .overlayContainer.vertical .goalBox {
-  top: 550px;
-  right: auto;
-  left: 50%;
-  transform: translateX(-50%);
+  order: 2;
+  max-width: 400px;
+  margin-bottom: auto !important; /* Pushes everything below it to the bottom, creating large empty center space */
+  flex-shrink: 0;
+  align-self: center;
 }
 
-/* Ensure chat popup stays visible above ticker */
+/* 3. At the very bottom: Ticker */
+.overlayContainer.vertical .tickerContainer {
+  order: 4; 
+  border-radius: 8px !important; /* Restore border */
+  border-left: 1px solid var(--neon-cyan) !important;
+  border-right: 1px solid var(--neon-cyan) !important;
+  border-bottom: 1px solid var(--neon-cyan) !important;
+  margin-top: 15px !important; /* Spacing below Chat Popup */
+}
+
+/* Reduce Social Media text size to fit vertical screen width */
+.overlayContainer.vertical .tickerItem {
+  font-size: 0.85rem !important;
+  padding: 0 10px !important;
+}
+
+/* Interactive Elements & Overrides */
 .overlayContainer.vertical .chatPopup {
-  bottom: 190px;
-  left: 50%;
-  transform: translateX(-50%);
+  order: 3;
+  width: 100%;
+  max-width: 350px;
+  align-self: center;
+}
+
+.overlayContainer.vertical .logoContainer {
+  position: absolute !important;
+  top: 15px !important; /* Small branding at extreme top left */
+  left: 15px !important;
+  max-width: 80px;
+  max-height: 80px;
+  z-index: 100;
+  padding: 8px !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Adjust Chat Popup animation for relative positioning */
+@keyframes slideInUpVertical {
+  0% { transform: translateY(50px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+@keyframes slideOutDownVertical {
+  0% { transform: translateY(0); opacity: 1; }
+  100% { transform: translateY(50px); opacity: 0; }
+}
+.overlayContainer.vertical .chatPopup {
+  animation: slideInUpVertical 0.5s ease forwards, slideOutDownVertical 0.5s ease 4s forwards;
 }
 
