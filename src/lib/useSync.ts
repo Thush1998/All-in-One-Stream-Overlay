@@ -16,7 +16,7 @@ export type SyncState = {
     instagram: string;
     facebook: string;
   };
-  qrCodeUrl: string;
+  logoDataUrl: string;
 };
 
 const DEFAULT_STATE: SyncState = {
@@ -29,7 +29,7 @@ const DEFAULT_STATE: SyncState = {
     instagram: '@DragXQueenIG',
     facebook: '/DragXQueenGaming',
   },
-  qrCodeUrl: 'https://dragxqueen.com',
+  logoDataUrl: '',
 };
 
 export function useSync() {
@@ -51,7 +51,7 @@ export function useSync() {
           ...DEFAULT_STATE,
           ...parsed,
           socialHandles: parsed.socialHandles || DEFAULT_STATE.socialHandles,
-          qrCodeUrl: parsed.qrCodeUrl || DEFAULT_STATE.qrCodeUrl
+          logoDataUrl: parsed.logoDataUrl || DEFAULT_STATE.logoDataUrl
         });
       } catch (e) {
         console.error('Failed to parse stream_state', e);

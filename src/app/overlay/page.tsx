@@ -157,16 +157,13 @@ export default function Overlay() {
         </div>
       )}
 
-      {/* Dynamic QR Code Box */}
-      {state.qrCodeUrl && (
-        <div className={styles.qrContainer}>
+      {/* Dynamic Logo Upload Box */}
+      {state.logoDataUrl && (
+        <div className={styles.logoContainer}>
           <img 
-            src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(state.qrCodeUrl)}`}
-            alt="QR Code"
-            width={120}
-            height={120}
+            src={state.logoDataUrl}
+            alt="Stream Logo"
           />
-          <div className={styles.qrText}>SCAN ME</div>
         </div>
       )}
 

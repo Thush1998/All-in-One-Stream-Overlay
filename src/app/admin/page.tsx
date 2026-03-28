@@ -19,8 +19,20 @@ export default function Dashboard() {
   const [ytHandle, setYtHandle] = useState(state.socialHandles?.youtube || '');
   const [igHandle, setIgHandle] = useState(state.socialHandles?.instagram || '');
   const [fbHandle, setFbHandle] = useState(state.socialHandles?.facebook || '');
-  const [qrUrl, setQrUrl] = useState(state.qrCodeUrl || '');
+  const [logoDataUrl, setLogoDataUrl] = useState(state.logoDataUrl || '');
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image too heavy! Keep it under 2MB for fast syncing.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => setLogoDataUrl(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
 
   useEffect(() => {
@@ -35,7 +47,7 @@ export default function Dashboard() {
     setYtHandle(state.socialHandles?.youtube || '');
     setIgHandle(state.socialHandles?.instagram || '');
     setFbHandle(state.socialHandles?.facebook || '');
-    setQrUrl(state.qrCodeUrl || '');
+    setLogoDataUrl(state.logoDataUrl || '');
   }, [state]);
 
 
@@ -60,7 +72,7 @@ export default function Dashboard() {
         instagram: igHandle,
         facebook: fbHandle,
       },
-      qrCodeUrl: qrUrl,
+      logoDataUrl: logoDataUrl,
     });
   };
 
@@ -163,13 +175,17 @@ export default function Dashboard() {
             />
           </div>
           <div className={styles.inputGroup} style={{ marginTop: '1rem' }}>
-            <label className={styles.label}>QR Code Target URL</label>
+            <label className={styles.label}>Upload Brand Logo</label>
             <input 
-              type="text" 
+              type="file" 
+              accept="image/*"
               className={styles.input} 
-              value={qrUrl}
-              onChange={(e) => setQrUrl(e.target.value)}
+              style={{ padding: '0.8rem' }}
+              onChange={handleLogoUpload}
             />
+            {logoDataUrl && (
+               <img src={logoDataUrl} alt="Logo Preview" style={{marginTop: '1rem', maxHeight: '80px', borderRadius: '4px', border: '1px solid var(--neon-cyan)'}} />
+            )}
           </div>
         </div>
 
