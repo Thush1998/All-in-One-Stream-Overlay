@@ -311,14 +311,17 @@
 
 /* -- Vertical Layout Specifics -- */
 
+/* -- Vertical Layout Specifics -- */
+
 /* Convert main container to Flexbox for portrait mode */
 .overlayContainer.vertical {
   display: flex !important;
   flex-direction: column;
   justify-content: flex-start;
-  align-items: center;
-  padding: 80px 20px 120px 20px; /* Safe zones: Top 80px, Bottom 120px */
+  align-items: flex-start; /* Default to left alignment */
+  padding: 60px 0 0 0; /* 60px safe zone at top, completely flush bottom */
   box-sizing: border-box;
+  background: transparent !important;
 }
 
 /* Base reset for elements that were absolute in landscape */
@@ -335,74 +338,77 @@
   transform: none !important;
   margin: 0;
   box-sizing: border-box;
-  width: 100%; /* Default to full width to prevent overflow */
+  width: 100%; 
+  background: transparent !important; /* Ensure 100% transparency */
 }
 
-/* 1. At the very top: Facecam */
+/* 1. At the very top-left: Facecam (Scaled down 50%) */
 .overlayContainer.vertical .facecamContainer {
   order: 1;
-  max-width: 380px;
-  height: 380px; /* Square Format */
-  margin-bottom: 20px !important;
+  max-width: 190px;
+  height: 190px; /* Square Format */
+  margin-bottom: 10px !important;
+  margin-left: 20px !important; /* Indent slightly */
   flex-shrink: 0;
-  align-self: center;
 }
 
 /* Ensure facecam pulse animation retains normal layout */
 @keyframes borderPulseVertical {
-  0% { transform: none; border-color: var(--neon-cyan); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-cyan-glow); }
-  100% { transform: none; border-color: var(--neon-pink); box-shadow: 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow), inset 0 0 calc(15px * var(--audio-scale, 1)) var(--neon-pink-glow); }
+  0% { transform: none; border-color: var(--neon-cyan); box-shadow: 0 0 calc(8px * var(--audio-scale, 1)) var(--neon-cyan-glow), inset 0 0 calc(8px * var(--audio-scale, 1)) var(--neon-cyan-glow); }
+  100% { transform: none; border-color: var(--neon-pink); box-shadow: 0 0 calc(8px * var(--audio-scale, 1)) var(--neon-pink-glow), inset 0 0 calc(8px * var(--audio-scale, 1)) var(--neon-pink-glow); }
 }
 
 .overlayContainer.vertical .facecamContainer {
   animation: borderPulseVertical 4s infinite alternate;
 }
 
-/* 2. Immediately below facecam: Goal Box */
+/* 2. Immediately below facecam: Goal Box (Scaled down 50%) */
 .overlayContainer.vertical .goalBox {
   order: 2;
-  max-width: 400px;
-  margin-bottom: auto !important; /* Pushes everything below it to the bottom, creating large empty center space */
+  max-width: 200px;
+  margin-left: 20px !important;
+  margin-bottom: auto !important; /* Pushes everything below it to the bottom, completely clearing the middle 70% */
   flex-shrink: 0;
-  align-self: center;
+  padding: 10px !important;
+  background: rgba(10, 10, 15, 0.4) !important; /* minimal background */
+  backdrop-filter: none !important; /* Remove blur for performance/transparency */
+  box-shadow: none !important;
 }
+
+.overlayContainer.vertical .goalTitle { font-size: 0.75rem; margin-bottom: 4px; }
+.overlayContainer.vertical .goalNumbers { font-size: 0.9rem; margin-bottom: 5px; }
+.overlayContainer.vertical .barContainer { height: 6px; }
 
 /* 3. At the very bottom: Ticker */
 .overlayContainer.vertical .tickerContainer {
   order: 4; 
-  border-radius: 8px !important; /* Restore border */
-  border-left: 1px solid var(--neon-cyan) !important;
-  border-right: 1px solid var(--neon-cyan) !important;
-  border-bottom: 1px solid var(--neon-cyan) !important;
-  margin-top: 15px !important; /* Spacing below Chat Popup */
+  border-radius: 0 !important; /* Flush horizontal bar */
+  border-left: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  margin-top: auto !important;
+  padding: 5px 0 !important; /* Thin bar */
+  background: rgba(0, 0, 0, 0.6) !important; /* Slightly visible dark band so text is readable over game */
+  backdrop-filter: none !important;
 }
 
 /* Reduce Social Media text size to fit vertical screen width */
-.overlayContainer.vertical .tickerItem {
-  font-size: 0.85rem !important;
-  padding: 0 10px !important;
+.overlayContainer.vertical .tickerItem span {
+  font-size: 0.75rem !important;
+  padding: 0 5px !important;
 }
 
 /* Interactive Elements & Overrides */
 .overlayContainer.vertical .chatPopup {
   order: 3;
-  width: 100%;
-  max-width: 350px;
+  max-width: 300px;
   align-self: center;
+  margin-bottom: 30px;
+  background: rgba(10, 10, 15, 0.8) !important;
 }
 
 .overlayContainer.vertical .logoContainer {
-  position: absolute !important;
-  top: 15px !important; /* Small branding at extreme top left */
-  left: 15px !important;
-  max-width: 80px;
-  max-height: 80px;
-  z-index: 100;
-  padding: 8px !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  border: none !important;
-  background: transparent !important;
+  display: none !important; /* Hide massive logo to ensure clear center */
 }
 
 /* Adjust Chat Popup animation for relative positioning */
