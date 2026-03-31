@@ -110,10 +110,28 @@ export default function Dashboard() {
   const [localChats,     setLocalChats]      = useState(state.customChats || []);
 
   useEffect(() => {
-    setLocalSubCount(state.subscriberCount?.toString() || '0');
-    setLocalGoal(state.subscriberGoal?.toString() || '100');
-    setLogoDataUrl(state.logoDataUrl || '');
-    setQrCodeDataUrl(state.qrCodeUrl || '');
+    // Only update local fields if the user is NOT actively typing
+    if (typeof document !== 'undefined') {
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
+        return; 
+      }
+    }
+
+    setLocalSubCount((prev) => prev !== state.subscriberCount?.toString() ? state.subscriberCount?.toString() || '0' : prev);
+    setLocalGoal((prev) => prev !== state.subscriberGoal?.toString() ? state.subscriberGoal?.toString() || '100' : prev);
+    
+    // For logos/files, we only override local state if there isn't an unsaved local file (base64 string starts with data:)
+    // If the global state matches, it means it was saved.
+    setLogoDataUrl((prev) => {
+      if (prev && prev !== state.logoDataUrl && prev.startsWith('data:')) return prev; // Preserve unsaved user upload
+      return state.logoDataUrl || '';
+    });
+    setQrCodeDataUrl((prev) => {
+      if (prev && prev !== state.qrCodeUrl && prev.startsWith('data:')) return prev; // Preserve unsaved user upload
+      return state.qrCodeUrl || '';
+    });
+
     setNewsText(state.newsTickerText || '');
     setLocalSlots(state.socialSlots);
     setLocalDonation({ gpay: state.donationDetails.gpay || '', paytm: state.donationDetails.paytm || '', superchat: '' });
