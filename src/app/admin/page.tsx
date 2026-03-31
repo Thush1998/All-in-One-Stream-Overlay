@@ -63,6 +63,7 @@ export default function Dashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
   const landscapeFrameRef  = useRef<HTMLDivElement>(null);
   const portraitFrameRef   = useRef<HTMLDivElement>(null);
@@ -90,7 +91,7 @@ export default function Dashboard() {
     return () => window.removeEventListener('resize', scale);
   }, [isAuthenticated]);
 
-  const { state, updateState } = useSync();
+  const { state, updateState } = useSync(isEditing);
 
   // Local editable copies
   const [localSubCount,  setLocalSubCount]  = useState(state.subscriberCount.toString());
@@ -241,7 +242,14 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <main className={styles.grid}>
+      <main className={styles.grid} 
+        onFocusCapture={() => setIsEditing(true)} 
+        onBlurCapture={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setIsEditing(false);
+          }
+        }}
+      >
 
         {/* ── 🎛️ Stream Controls ─────────────────────────────── */}
         <div className={styles.card} style={{ gridColumn: 'span 2' }}>

@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────
 export type ChatEvent = {
@@ -112,13 +112,25 @@ export const DEFAULT_STATE: SyncState = {
   ],
 };
 
-export function useSync() {
+export function useSync(suspendSync: boolean = false) {
   const [state, setState] = useState<SyncState>(DEFAULT_STATE);
+
+  const suspendRef = useRef(suspendSync);
+  useEffect(() => { suspendRef.current = suspendSync; }, [suspendSync]);
+
+  const pendingUpdates = useRef<Partial<SyncState>>({});
+  const pushTimeout = useRef<NodeJS.Timeout | null>(null);
+  const isPushing = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const fetchState = async () => {
+      // Suspend fetch if user is typing or if there are pending/active database POSTs
+      if (suspendRef.current || isPushing.current || Object.keys(pendingUpdates.current).length > 0 || pushTimeout.current !== null) {
+        return; 
+      }
+
       try {
         const res = await fetch('/api/sync', {
           cache: 'no-store',
@@ -152,25 +164,39 @@ export function useSync() {
     };
   }, []);
 
-  const updateState = useCallback(async (updates: Partial<SyncState>) => {
-    // Optimistic UI update
+  const updateState = useCallback((updates: Partial<SyncState>) => {
+    // Optimistic UI update immediately
     setState((prev) => {
       const updated = { ...prev, ...updates };
       return updated;
     });
 
-    try {
-      await fetch('/api/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(updates),
-        cache: 'no-store',
-      });
-    } catch (err) {
-      console.error('Failed to push state update', err);
-    }
+    // Accumulate updates for debounced database write
+    pendingUpdates.current = { ...pendingUpdates.current, ...updates };
+
+    if (pushTimeout.current) clearTimeout(pushTimeout.current);
+    
+    pushTimeout.current = setTimeout(async () => {
+      const payload = { ...pendingUpdates.current };
+      pendingUpdates.current = {};
+      pushTimeout.current = null;
+      isPushing.current = true;
+      
+      try {
+        await fetch('/api/sync', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+          cache: 'no-store',
+        });
+      } catch (err) {
+        console.error('Failed to push state update', err);
+      } finally {
+        isPushing.current = false;
+      }
+    }, 500); // 500ms debounce
   }, []);
 
   return { state, updateState };
