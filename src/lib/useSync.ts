@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 // ── Types ──────────────────────────────────────────────────────
 export type ChatEvent = {
@@ -68,6 +68,8 @@ export type SyncState = {
   latestPaytmSupport: string;
   // Custom Chat Messages
   customChats: { id: string; text: string }[];
+  // Re-Render Trigger
+  forceRefreshId: number;
 };
 
 const DEFAULT_STATE: SyncState = {
@@ -110,19 +112,33 @@ const DEFAULT_STATE: SyncState = {
     { id: '1', text: 'GG' },
     { id: '2', text: 'Queen' },
   ],
+  forceRefreshId: 0,
 };
 
 export function useSync() {
   const [state, setState] = useState<SyncState>(DEFAULT_STATE);
+  const refreshRef = useRef<number>(0);
 
   const fetchState = useCallback(async () => {
     try {
-      // Fetch latest state, using cache: 'no-store' to bypass Vercel edge caching
-      const res = await fetch(`/api/sync?t=${Date.now()}`, {
+      // Fetch latest state from PRODUCTION API (via ENV) or relative local URL
+      // Bypasses Vercel edge caching via ?t=timestamp and cache: 'no-store'
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
+      const res = await fetch(`${baseUrl}/api/sync?t=${Date.now()}`, {
         cache: 'no-store',
       });
       if (res.ok) {
         const data = await res.json();
+        
+        // Force refresh from Admin
+        if (data.forceRefreshId && data.forceRefreshId > refreshRef.current) {
+          refreshRef.current = data.forceRefreshId;
+          if (typeof window !== 'undefined') {
+            window.location.reload();
+            return;
+          }
+        }
+        
         setState((prev) => ({ ...prev, ...data }));
       }
     } catch (e) {
@@ -134,10 +150,11 @@ export function useSync() {
     if (typeof window === 'undefined') return;
 
     // Initial fetch
+    // eslint-disable-next-line
     fetchState();
 
-    // Set up polling interval every 2 seconds for OBS compatibility
-    const intervalId = setInterval(fetchState, 2000);
+    // REAL-TIME POLLING: fetch data every 1 second
+    const intervalId = setInterval(fetchState, 1000);
 
     // Listen to visibilitychange or messages to force re-render/fetch
     const handleMessage = () => fetchState();
@@ -160,7 +177,8 @@ export function useSync() {
     setState((prev) => ({ ...prev, ...updates }));
 
     try {
-      await fetch('/api/sync', {
+      const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || '';
+      await fetch(`${baseUrl}/api/sync`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

@@ -44,16 +44,26 @@ let globalState: any = {
     { id: '1', text: 'GG' },
     { id: '2', text: 'Queen' },
   ],
+  forceRefreshId: 0,
 };
 
+const CORS_HEADERS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 200, headers: CORS_HEADERS });
+}
+
 export async function GET() {
-  // Adding cache control headers to bypass Vercel edge caching
+  // Adding cache control headers and CORS to bypass Vercel edge caching and allow remote sync
   return NextResponse.json(globalState, {
-    headers: {
-      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      'Pragma': 'no-cache',
-      'Expires': '0',
-    },
+    headers: CORS_HEADERS,
   });
 }
 
@@ -62,11 +72,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     globalState = { ...globalState, ...body };
     return NextResponse.json(globalState, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-      },
+      headers: CORS_HEADERS,
     });
   } catch (error) {
-    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400, headers: CORS_HEADERS });
   }
 }
+

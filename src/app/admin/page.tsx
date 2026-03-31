@@ -234,6 +234,9 @@ export default function Dashboard() {
             <button className={`${styles.button} ${state.streamState === 'live' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'live' })}>LIVE</button>
             <button className={`${styles.button} ${state.streamState === 'paused' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'paused' })}>PAUSED</button>
             <button className={`${styles.button} ${state.streamState === 'ending' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'ending' })}>ENDING</button>
+            <button className={`${styles.button}`} style={{ borderColor: '#ff0055', color: '#ff0055' }} onClick={() => updateState({ forceRefreshId: Date.now() })}>
+              ⚠️ Force Refresh OBS
+            </button>
           </div>
 
           <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
