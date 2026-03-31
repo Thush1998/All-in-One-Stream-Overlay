@@ -93,8 +93,8 @@ export default function Dashboard() {
   const { state, updateState } = useSync('admin');
 
   // Local editable copies
-  const [localSubCount,  setLocalSubCount]  = useState(state.subscriberCount.toString());
-  const [localGoal,      setLocalGoal]      = useState(state.subscriberGoal.toString());
+  const [localSubCount,  setLocalSubCount]  = useState((state.subscriberCount ?? 0).toString());
+  const [localGoal,      setLocalGoal]      = useState((state.subscriberGoal ?? 100).toString());
   const [logoDataUrl,    setLogoDataUrl]     = useState(state.logoDataUrl || '');
   const [newsText,       setNewsText]        = useState(state.newsTickerText || '');
   const [fanName,        setFanName]         = useState('');

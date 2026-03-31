@@ -20,9 +20,16 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const data = await req.json();
-    globalState = { ...globalState, ...data };
-    
+    const raw = await req.json();
+
+    // Strip any undefined values so a partial POST never corrupts globalState.
+    // Then merge on top of current state with DEFAULT_STATE as an ultimate fallback.
+    const sanitised = Object.fromEntries(
+      Object.entries(raw).filter(([, v]) => v !== undefined)
+    ) as Partial<SyncState>;
+
+    globalState = { ...DEFAULT_STATE, ...globalState, ...sanitised };
+
     return NextResponse.json(globalState, {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
