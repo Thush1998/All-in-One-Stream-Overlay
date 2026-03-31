@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { SyncState, DEFAULT_STATE } from '@/lib/useSync';
+import { SyncState, DEFAULT_STATE } from '@/lib/syncTypes';
 
 export const dynamic = 'force-dynamic';
 
