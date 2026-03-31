@@ -185,3 +185,414 @@
   margin-top: 1rem;
   font-weight: bold;
 }
+
+/* ── Dual Live Preview Section ───────────────────────────────── */
+.previewSection {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  border-top: 2px solid var(--neon-cyan);
+  border-radius: 12px;
+  backdrop-filter: blur(var(--glass-blur));
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.previewSectionTitle {
+  font-size: 1.3rem;
+  color: var(--neon-cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 0 8px var(--neon-cyan-glow);
+}
+
+.previewGrid {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.previewCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  flex: 1;
+  min-width: 240px;
+}
+
+.previewLabel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: #ccc;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.previewDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+  animation: blink 1.5s infinite;
+}
+.previewDotPink {
+  background: var(--neon-pink);
+  box-shadow: 0 0 8px var(--neon-pink-glow);
+}
+
+.previewBadge {
+  background: rgba(0, 255, 255, 0.15);
+  border: 1px solid var(--neon-cyan);
+  color: var(--neon-cyan);
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  margin-left: auto;
+}
+.previewBadgePink {
+  background: rgba(255, 0, 85, 0.15);
+  border-color: var(--neon-pink);
+  color: var(--neon-pink);
+}
+
+.previewFrame {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  background: #000;
+  box-shadow: 0 0 20px rgba(0,0,0,0.8);
+}
+
+.previewIframe {
+  position: absolute;
+  top: 0; left: 0;
+  width: 1920px;
+  height: 1080px;
+  border: none;
+  transform-origin: top left;
+  pointer-events: none;
+}
+
+/* JS sets scale via inline style on the iframe wrapper */
+
+.previewLink {
+  font-size: 0.8rem;
+  color: var(--neon-cyan);
+  text-decoration: none;
+  letter-spacing: 1px;
+  transition: text-shadow 0.2s;
+}
+.previewLink:hover {
+  text-shadow: 0 0 8px var(--neon-cyan-glow);
+  text-decoration: underline;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* ── Premium Feature Admin Styles ─────────────────────────────── */
+
+/* 🎬 Highlight Button — large, animated neon CTA */
+.highlightBtn {
+  width: 100%;
+  padding: 1.2rem;
+  background: linear-gradient(135deg, rgba(0,243,255,0.1), rgba(255,0,85,0.1));
+  color: var(--neon-cyan);
+  border: 2px solid var(--neon-cyan);
+  border-radius: 10px;
+  font-size: 1.3rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  cursor: pointer;
+  font-family: inherit;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: highlightBtnGlow 2.5s ease-in-out infinite alternate;
+}
+.highlightBtn::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink), var(--neon-cyan));
+  z-index: -1;
+  border-radius: 12px;
+  background-size: 200% 200%;
+  animation: borderGradientSpin 3s linear infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.highlightBtn:hover::before { opacity: 1; }
+.highlightBtn:hover {
+  background: rgba(0, 243, 255, 0.2);
+  box-shadow: 0 0 30px var(--neon-cyan-glow), 0 0 60px rgba(0,243,255,0.3);
+  transform: translateY(-2px) scale(1.02);
+  color: #fff;
+}
+.highlightBtn:active { transform: scale(0.98); }
+
+@keyframes highlightBtnGlow {
+  from { box-shadow: 0 0 10px var(--neon-cyan-glow); }
+  to   { box-shadow: 0 0 25px var(--neon-cyan-glow), 0 0 50px rgba(0,243,255,0.25); }
+}
+@keyframes borderGradientSpin {
+  0%   { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+/* 👑 Spotlight Button — gold glow */
+.spotlightBtn {
+  color: #ffd700;
+  border-color: #ffd700;
+  animation: spotlightBtnGlow 2s ease-in-out infinite alternate;
+}
+.spotlightBtn:hover {
+  background: rgba(255, 215, 0, 0.15);
+  box-shadow: 0 0 25px rgba(255,215,0,0.6), 0 0 50px rgba(255,215,0,0.3);
+  color: #fff;
+  border-color: #ffd700;
+  transform: translateY(-2px);
+}
+.spotlightBtn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+  animation: none;
+  box-shadow: none;
+}
+
+@keyframes spotlightBtnGlow {
+  from { box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+  to   { box-shadow: 0 0 20px rgba(255,215,0,0.7); }
+}
+
+/* 🔊 SFX Toggle — styled checkbox row */
+.sfxToggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #ccc;
+  letter-spacing: 1px;
+  user-select: none;
+}
+.sfxToggle input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--neon-cyan);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+.sfxToggle input[type='checkbox']:checked {
+  background: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+}
+.sfxToggle input[type='checkbox']:checked::after {
+  content: '✓';
+  position: absolute;
+  top: -2px;
+  left: 2px;
+  font-size: 13px;
+  color: #000;
+  font-weight: 900;
+}
+.sfxToggle span {
+  transition: color 0.2s;
+}
+.sfxToggle:hover span {
+  color: var(--neon-cyan);
+}
+
+/* ==========================================================
+   MEGA UPGRADE STYLES
+   ========================================================== */
+
+/* ── Social Slot Rows ──────────────────────────────────────── */
+.socialSlotRow {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.slotSelect {
+  background: rgba(10, 10, 15, 0.9);
+  color: #fff;
+  border: 1px solid var(--neon-cyan);
+  border-radius: 6px;
+  padding: 0.65rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 160px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.slotSelect:focus {
+  outline: none;
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+}
+.slotRemoveBtn {
+  background: transparent;
+  color: var(--neon-pink);
+  border: 1px solid var(--neon-pink);
+  border-radius: 6px;
+  width: 36px; height: 36px;
+  cursor: pointer;
+  font-size: 1rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.slotRemoveBtn:hover {
+  background: rgba(255, 0, 85, 0.15);
+  box-shadow: 0 0 10px var(--neon-pink-glow);
+}
+
+/* ── Color Picker ─────────────────────────────────────────── */
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.colorPicker {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 52px;
+  height: 36px;
+  border: 2px solid var(--neon-cyan);
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+  padding: 2px;
+  transition: box-shadow 0.2s;
+}
+.colorPicker:hover { box-shadow: 0 0 10px var(--neon-cyan-glow); }
+.colorPicker::-webkit-color-swatch-wrapper { padding: 0; border-radius: 4px; }
+.colorPicker::-webkit-color-swatch { border: none; border-radius: 4px; }
+.colorValue {
+  font-family: monospace;
+  font-size: 0.9rem;
+  color: #aaa;
+  letter-spacing: 1px;
+}
+
+/* ── Corner Grid ──────────────────────────────────────────── */
+.cornerGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cornerBtn {
+  background: rgba(10, 10, 15, 0.8);
+  color: #aaa;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 0.7rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+}
+.cornerBtn:hover {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  box-shadow: 0 0 8px var(--neon-cyan-glow);
+}
+.cornerBtnActive {
+  border-color: var(--neon-cyan);
+  color: var(--neon-cyan);
+  background: rgba(0, 243, 255, 0.1);
+  box-shadow: 0 0 12px var(--neon-cyan-glow), inset 0 0 8px rgba(0,243,255,0.05);
+}
+
+/* ── Stat Stepper ─────────────────────────────────────────── */
+.statStepper {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: rgba(10,10,15,0.8);
+  border: 1px solid var(--neon-cyan);
+  border-radius: 8px;
+  overflow: hidden;
+  height: 48px;
+}
+.stepperBtn {
+  background: transparent;
+  color: var(--neon-cyan);
+  border: none;
+  width: 52px;
+  height: 100%;
+  font-size: 1.5rem;
+  font-weight: 900;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.stepperBtn:hover { background: rgba(0, 243, 255, 0.12); }
+.stepperBtn:active { background: rgba(0, 243, 255, 0.25); }
+.stepperValue {
+  flex: 1;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #fff;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 8px var(--neon-cyan-glow);
+  border-left: 1px solid rgba(0,243,255,0.2);
+  border-right: 1px solid rgba(0,243,255,0.2);
+  min-width: 3ch;
+  padding: 0 12px;
+}
+
+/* ── Alert Type Grid ──────────────────────────────────────── */
+.alertGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.alertTypeBtn {
+  background: rgba(10,10,15,0.85);
+  color: var(--alert-color, var(--neon-cyan));
+  border: 2px solid var(--alert-color, var(--neon-cyan));
+  border-radius: 10px;
+  padding: 1rem 0.8rem;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-shadow: 0 0 8px var(--alert-color, var(--neon-cyan-glow));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--alert-color, #00f3ff) 30%, transparent);
+}
+.alertTypeBtn:hover {
+  background: color-mix(in srgb, var(--alert-color, #00f3ff) 15%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--alert-color, #00f3ff) 60%, transparent),
+              0 0 40px color-mix(in srgb, var(--alert-color, #00f3ff) 25%, transparent);
+  transform: translateY(-2px) scale(1.02);
+}
+.alertTypeBtn:active { transform: scale(0.96); }

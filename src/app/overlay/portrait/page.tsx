@@ -1,5 +1,5 @@
 import OverlayView from '@/components/OverlayView';
 
-export default function VerticalOverlay() {
+export default function PortraitOverlay() {
   return <OverlayView layout="portrait" />;
 }
