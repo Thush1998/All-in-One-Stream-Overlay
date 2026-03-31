@@ -70,7 +70,7 @@ export type SyncState = {
   customChats: { id: string; text: string }[];
 };
 
-const DEFAULT_STATE: SyncState = {
+export const DEFAULT_STATE: SyncState = {
   subscriberCount: 0,
   subscriberGoal: 100,
   triggerVictory: 0,
@@ -114,57 +114,64 @@ const DEFAULT_STATE: SyncState = {
 
 export function useSync() {
   const [state, setState] = useState<SyncState>(DEFAULT_STATE);
-  const [channel, setChannel] = useState<BroadcastChannel | null>(null);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const bc = new BroadcastChannel('stream_sync');
-    setChannel(bc);
-
-    const saved = localStorage.getItem('stream_state');
-    if (saved) {
+    const fetchState = async () => {
       try {
-        const parsed = JSON.parse(saved);
-        setState({
-          ...DEFAULT_STATE,
-          ...parsed,
-          // Guard array/object fields
-          socialSlots: parsed.socialSlots?.length ? parsed.socialSlots : DEFAULT_STATE.socialSlots,
-          donationDetails: parsed.donationDetails || DEFAULT_STATE.donationDetails,
-          themeColors: parsed.themeColors || DEFAULT_STATE.themeColors,
-          logoDataUrl: parsed.logoDataUrl || DEFAULT_STATE.logoDataUrl,
-          qrCodeUrl: parsed.qrCodeUrl || DEFAULT_STATE.qrCodeUrl,
-          showBgmiStats: parsed.showBgmiStats !== undefined ? parsed.showBgmiStats : DEFAULT_STATE.showBgmiStats,
-          showQrCode: parsed.showQrCode !== undefined ? parsed.showQrCode : DEFAULT_STATE.showQrCode,
-          showFacecam: parsed.showFacecam !== undefined ? parsed.showFacecam : DEFAULT_STATE.showFacecam,
-          streamState: parsed.streamState || DEFAULT_STATE.streamState,
-          customChats: parsed.customChats || DEFAULT_STATE.customChats,
-          latestSuperchat: parsed.latestSuperchat || '',
-          latestGpaySupport: parsed.latestGpaySupport || '',
-          latestPaytmSupport: parsed.latestPaytmSupport || '',
+        const res = await fetch('/api/sync', {
+          cache: 'no-store',
         });
-      } catch (e) {
-        console.error('Failed to parse stream_state', e);
+        if (res.ok) {
+          const data = await res.json();
+          setState((prev) => ({ ...prev, ...data }));
+        }
+      } catch (err) {
+        console.error('Failed to fetch sync state', err);
       }
-    }
-
-    bc.onmessage = (event) => {
-      setState(event.data);
-      localStorage.setItem('stream_state', JSON.stringify(event.data));
     };
 
-    return () => bc.close();
+    // Initial fetch
+    fetchState();
+
+    // Polling interval: fetch latest state every 2 seconds
+    const intervalId = setInterval(fetchState, 2000);
+
+    // Also listen to postMessage from same-page scripts to force a re-render
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data === 'FORCE_RERENDER') {
+        fetchState();
+      }
+    };
+    window.addEventListener('message', handleMessage);
+
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('message', handleMessage);
+    };
   }, []);
 
-  const updateState = useCallback((updates: Partial<SyncState>) => {
+  const updateState = useCallback(async (updates: Partial<SyncState>) => {
+    // Optimistic UI update
     setState((prev) => {
       const updated = { ...prev, ...updates };
-      localStorage.setItem('stream_state', JSON.stringify(updated));
-      if (channel) channel.postMessage(updated);
       return updated;
     });
-  }, [channel]);
+
+    try {
+      await fetch('/api/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updates),
+        cache: 'no-store',
+      });
+    } catch (err) {
+      console.error('Failed to push state update', err);
+    }
+  }, []);
 
   return { state, updateState };
 }
