@@ -23,11 +23,30 @@ export async function POST(req: Request) {
     const raw = await req.json();
 
     // Strip any undefined values so a partial POST never corrupts globalState.
-    // Then merge on top of current state with DEFAULT_STATE as an ultimate fallback.
     const sanitised = Object.fromEntries(
       Object.entries(raw).filter(([, v]) => v !== undefined)
     ) as Partial<SyncState>;
 
+    // Deep-merge nested objects — never allow a partial write to set them to null/undefined.
+    if (sanitised.themeColors) {
+      sanitised.themeColors = {
+        ...DEFAULT_STATE.themeColors,
+        ...globalState.themeColors,
+        ...sanitised.themeColors,
+      };
+    }
+    if (sanitised.donationDetails) {
+      sanitised.donationDetails = {
+        ...DEFAULT_STATE.donationDetails,
+        ...globalState.donationDetails,
+        ...sanitised.donationDetails,
+      };
+    }
+    if (sanitised.socialSlots && !Array.isArray(sanitised.socialSlots)) {
+      delete sanitised.socialSlots; // reject malformed array
+    }
+
+    // Layer: DEFAULT_STATE → current globalState → incoming patch
     globalState = { ...DEFAULT_STATE, ...globalState, ...sanitised };
 
     return NextResponse.json(globalState, {

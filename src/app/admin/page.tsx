@@ -303,20 +303,20 @@ export default function Dashboard() {
             <label className={styles.label}>Primary Glow Color</label>
             <div className={styles.colorRow}>
               <input type="color" className={styles.colorPicker}
-                value={state.themeColors.primary}
-                onChange={e => updateState({ themeColors: { ...state.themeColors, primary: e.target.value } })}
+                value={state.themeColors?.primary ?? '#00f3ff'}
+                onChange={e => updateState({ themeColors: { ...(state.themeColors ?? { primary: '#00f3ff', secondary: '#ff0055' }), primary: e.target.value } })}
               />
-              <span className={styles.colorValue}>{state.themeColors.primary}</span>
+              <span className={styles.colorValue}>{state.themeColors?.primary ?? '#00f3ff'}</span>
             </div>
           </div>
           <div className={styles.inputGroup}>
             <label className={styles.label}>Secondary Glow Color</label>
             <div className={styles.colorRow}>
               <input type="color" className={styles.colorPicker}
-                value={state.themeColors.secondary}
-                onChange={e => updateState({ themeColors: { ...state.themeColors, secondary: e.target.value } })}
+                value={state.themeColors?.secondary ?? '#ff0055'}
+                onChange={e => updateState({ themeColors: { ...(state.themeColors ?? { primary: '#00f3ff', secondary: '#ff0055' }), secondary: e.target.value } })}
               />
-              <span className={styles.colorValue}>{state.themeColors.secondary}</span>
+              <span className={styles.colorValue}>{state.themeColors?.secondary ?? '#ff0055'}</span>
             </div>
           </div>
           <div className={styles.inputGroup}>
