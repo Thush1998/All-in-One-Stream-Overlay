@@ -99,15 +99,15 @@ export default function Dashboard() {
   const [newsText,       setNewsText]        = useState(state.newsTickerText || '');
   const [fanName,        setFanName]         = useState('');
   const [sfxEnabled,     setSfxEnabled]      = useState(true);
-  const [localSlots,     setLocalSlots]      = useState<SocialSlot[]>(state.socialSlots);
-  const [localDonation,  setLocalDonation]   = useState(state.donationDetails);
-  const [localLatestSub, setLocalLatestSub]  = useState(state.latestSubscriber);
-  const [localTopDonor,  setLocalTopDonor]   = useState(state.topDonor);
+  const [localSlots,     setLocalSlots]      = useState<SocialSlot[]>(state.socialSlots ?? []);
+  const [localDonation,  setLocalDonation]   = useState(state.donationDetails ?? { gpay: '', paytm: '', superchat: '' });
+  const [localLatestSub, setLocalLatestSub]  = useState(state.latestSubscriber || '');
+  const [localTopDonor,  setLocalTopDonor]   = useState(state.topDonor || '');
   const [localLatestSuperchat, setLocalLatestSuperchat] = useState(state.latestSuperchat || '');
   const [localLatestGpay, setLocalLatestGpay] = useState(state.latestGpaySupport || '');
   const [localLatestPaytm, setLocalLatestPaytm] = useState(state.latestPaytmSupport || '');
-  const [qrCodeDataUrl,  setQrCodeDataUrl]   = useState(state.qrCodeUrl);
-  const [localChats,     setLocalChats]      = useState(state.customChats || []);
+  const [qrCodeDataUrl,  setQrCodeDataUrl]   = useState(state.qrCodeUrl || '');
+  const [localChats,     setLocalChats]      = useState(state.customChats ?? []);
 
   useEffect(() => {
     // Only update local fields if the user is NOT actively typing
@@ -133,8 +133,12 @@ export default function Dashboard() {
     });
 
     setNewsText(state.newsTickerText || '');
-    setLocalSlots(state.socialSlots);
-    setLocalDonation({ gpay: state.donationDetails.gpay || '', paytm: state.donationDetails.paytm || '', superchat: '' });
+    setLocalSlots(state.socialSlots ?? []);
+    setLocalDonation({
+      gpay:      state.donationDetails?.gpay      ?? '',
+      paytm:     state.donationDetails?.paytm     ?? '',
+      superchat: state.donationDetails?.superchat ?? '',
+    });
     setLocalLatestSub(state.latestSubscriber || '');
     setLocalTopDonor(state.topDonor || '');
     setLocalLatestSuperchat(state.latestSuperchat || '');
