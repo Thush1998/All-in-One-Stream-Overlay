@@ -91,12 +91,13 @@ export default function Dashboard() {
   }, [isAuthenticated]);
 
   const { state, updateState } = useSync('admin');
+  const isHydrated = useRef(false);
 
   // Local editable copies
-  const [localSubCount,  setLocalSubCount]  = useState((state.subscriberCount ?? 0).toString());
-  const [localGoal,      setLocalGoal]      = useState((state.subscriberGoal ?? 100).toString());
-  const [logoDataUrl,    setLogoDataUrl]     = useState(state.logoDataUrl || '');
-  const [newsText,       setNewsText]        = useState(state.newsTickerText || '');
+  const [localSubCount,  setLocalSubCount]  = useState('0');
+  const [localGoal,      setLocalGoal]      = useState('100');
+  const [logoDataUrl,    setLogoDataUrl]     = useState('');
+  const [newsText,       setNewsText]        = useState('');
   const [fanName,        setFanName]         = useState('');
   const [sfxEnabled,     setSfxEnabled]      = useState(true);
   const [localSlots,     setLocalSlots]      = useState<SocialSlot[]>(state.socialSlots ?? []);
@@ -110,28 +111,17 @@ export default function Dashboard() {
   const [localChats,     setLocalChats]      = useState(state.customChats ?? []);
 
   useEffect(() => {
-    // Only update local fields if the user is NOT actively typing
-    if (typeof document !== 'undefined') {
-      const tag = document.activeElement?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') {
-        return; 
-      }
-    }
-
-    setLocalSubCount((prev) => prev !== state.subscriberCount?.toString() ? state.subscriberCount?.toString() || '0' : prev);
-    setLocalGoal((prev) => prev !== state.subscriberGoal?.toString() ? state.subscriberGoal?.toString() || '100' : prev);
+    // Only update local fields if we haven't hydrated yet AND the state actually has data
+    if (isHydrated.current) return;
     
-    // For logos/files, we only override local state if there isn't an unsaved local file (base64 string starts with data:)
-    // If the global state matches, it means it was saved.
-    setLogoDataUrl((prev) => {
-      if (prev && prev !== state.logoDataUrl && prev.startsWith('data:')) return prev; // Preserve unsaved user upload
-      return state.logoDataUrl || '';
-    });
-    setQrCodeDataUrl((prev) => {
-      if (prev && prev !== state.qrCodeUrl && prev.startsWith('data:')) return prev; // Preserve unsaved user upload
-      return state.qrCodeUrl || '';
-    });
+    // Check if state is non-empty (ignore default state if it's still being fetched)
+    const hasData = state.subscriberCount !== 0 || state.newsTickerText !== '' || state.logoDataUrl !== '';
+    if (!hasData) return;
 
+    setLocalSubCount(state.subscriberCount?.toString() || '0');
+    setLocalGoal(state.subscriberGoal?.toString() || '100');
+    setLogoDataUrl(state.logoDataUrl || '');
+    setQrCodeDataUrl(state.qrCodeUrl || '');
     setNewsText(state.newsTickerText || '');
     setLocalSlots(state.socialSlots ?? []);
     setLocalDonation({
@@ -139,12 +129,14 @@ export default function Dashboard() {
       paytm:     state.donationDetails?.paytm     ?? '',
       superchat: state.donationDetails?.superchat ?? '',
     });
-    setLocalLatestSub(state.latestSubscriber || '');
-    setLocalTopDonor(state.topDonor || '');
-    setLocalLatestSuperchat(state.latestSuperchat || '');
-    setLocalLatestGpay(state.latestGpaySupport || '');
-    setLocalLatestPaytm(state.latestPaytmSupport || '');
-    setLocalChats(state.customChats || []);
+    setLocalLatestSub(state.latestSubscriber || 'None');
+    setLocalTopDonor(state.topDonor || 'None');
+    setLocalLatestSuperchat(state.latestSuperchat || 'None');
+    setLocalLatestGpay(state.latestGpaySupport || 'None');
+    setLocalLatestPaytm(state.latestPaytmSupport || 'None');
+    setLocalChats(state.customChats ?? []);
+    
+    isHydrated.current = true;
   }, [state]);
 
   useEffect(() => {
@@ -536,7 +528,18 @@ export default function Dashboard() {
           <button className={`${styles.button} ${styles.buttonPink}`} style={{ marginTop:'0.5rem' }}
             onClick={(e) => {
               e.preventDefault();
-              updateState({ subscriberCount: parseInt(localSubCount)||0, subscriberGoal: parseInt(localGoal)||100, logoDataUrl, qrCodeUrl: qrCodeDataUrl });
+              updateState({ 
+                subscriberCount: parseInt(localSubCount)||0, 
+                subscriberGoal: parseInt(localGoal)||100, 
+                logoDataUrl, 
+                qrCodeUrl: qrCodeDataUrl,
+                latestSubscriber: localLatestSub,
+                topDonor: localTopDonor,
+                latestSuperchat: localLatestSuperchat,
+                latestGpaySupport: localLatestGpay,
+                latestPaytmSupport: localLatestPaytm,
+                newsTickerText: newsText
+               });
             }}>
             Save &amp; Sync All
           </button>
