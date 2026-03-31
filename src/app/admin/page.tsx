@@ -63,7 +63,6 @@ export default function Dashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [authError, setAuthError] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
 
   const landscapeFrameRef  = useRef<HTMLDivElement>(null);
   const portraitFrameRef   = useRef<HTMLDivElement>(null);
@@ -91,7 +90,7 @@ export default function Dashboard() {
     return () => window.removeEventListener('resize', scale);
   }, [isAuthenticated]);
 
-  const { state, updateState } = useSync(isEditing);
+  const { state, updateState } = useSync('admin');
 
   // Local editable copies
   const [localSubCount,  setLocalSubCount]  = useState(state.subscriberCount.toString());
@@ -242,14 +241,7 @@ export default function Dashboard() {
         </div>
       </section>
 
-      <main className={styles.grid} 
-        onFocusCapture={() => setIsEditing(true)} 
-        onBlurCapture={(e) => {
-          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-            setIsEditing(false);
-          }
-        }}
-      >
+      <main className={styles.grid}>
 
         {/* ── 🎛️ Stream Controls ─────────────────────────────── */}
         <div className={styles.card} style={{ gridColumn: 'span 2' }}>
@@ -538,7 +530,10 @@ export default function Dashboard() {
             </label>
           </div>
           <button className={`${styles.button} ${styles.buttonPink}`} style={{ marginTop:'0.5rem' }}
-            onClick={() => updateState({ subscriberCount: parseInt(localSubCount)||0, subscriberGoal: parseInt(localGoal)||100, logoDataUrl, qrCodeUrl: qrCodeDataUrl })}>
+            onClick={(e) => {
+              e.preventDefault();
+              updateState({ subscriberCount: parseInt(localSubCount)||0, subscriberGoal: parseInt(localGoal)||100, logoDataUrl, qrCodeUrl: qrCodeDataUrl });
+            }}>
             Save &amp; Sync All
           </button>
           <button className={styles.button} style={{ marginTop:'1rem' }} onClick={() => updateState({ triggerVictory: state.triggerVictory + 1 })}>

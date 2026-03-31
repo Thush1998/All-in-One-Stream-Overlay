@@ -45,36 +45,81 @@ function playHighlightSFX() {
   } catch (_) {}
 }
 
-/* ── Audio Hook (click-activated) ────────────────────────────── */
+/* ── Audio Hook (auto-start, OBS-compatible, no click gate) ─────── */
 function useAudioResponsive(ref: React.RefObject<HTMLDivElement | null>) {
-  const [audioActive, setAudioActive] = useState(false);
-
   useEffect(() => {
-    if (!audioActive) return;
-    let audioContext: AudioContext;
+    let audioCtx: AudioContext;
     let animationId: number;
+    let fallbackNode: ConstantSourceNode | null = null;
+
     const startAudio = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const analyser = audioContext.createAnalyser();
+        // Step 1 — Create AudioContext immediately (no user gesture needed in OBS WebKit)
+        audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+
+        // Step 2 — OBS fix: force-resume if the context starts suspended
+        if (audioCtx.state === 'suspended') {
+          await audioCtx.resume();
+        }
+
+        const analyser = audioCtx.createAnalyser();
         analyser.fftSize = 256;
-        audioContext.createMediaStreamSource(stream).connect(analyser);
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        // Step 3 — Provide a silent fallback source so the visualiser loop always runs.
+        //           In OBS, mic audio flows through the host app, not the browser mic API.
+        //           The fallback keeps the facecam border animation alive without any data.
+        fallbackNode = audioCtx.createConstantSource();
+        fallbackNode.offset.value = 0; // silent — produces no audible output
+        fallbackNode.connect(analyser);
+        fallbackNode.start();
+
+        // Step 4 — Silently attempt real mic capture (works in OBS if "Use custom audio device" is on).
+        //           If denied, we simply keep the silent fallback — no prompt, no crash.
+        navigator.mediaDevices
+          .getUserMedia({ audio: true, video: false })
+          .then((stream) => {
+            if (!audioCtx || audioCtx.state === 'closed') return;
+            // Disconnect silent fallback now that we have real audio
+            fallbackNode?.disconnect();
+            fallbackNode?.stop();
+            fallbackNode = null;
+
+            const micSource = audioCtx.createMediaStreamSource(stream);
+            // Route mic → analyser only; do NOT connect to destination (avoids feedback loop)
+            micSource.connect(analyser);
+          })
+          .catch(() => {
+            // No mic access — silent fallback continues; overlay is unaffected
+          });
+
+        // Step 5 — Animation tick: read frequency data and drive CSS variable
         const tick = () => {
-          analyser.getByteFrequencyData(dataArray as any);
+          analyser.getByteFrequencyData(dataArray);
           const avg = dataArray.reduce((a, v) => a + v, 0) / dataArray.length;
-          if (ref.current) ref.current.style.setProperty('--audio-scale', String(Math.min(1 + (avg / 20) * 2, 4)));
+          if (ref.current) {
+            ref.current.style.setProperty(
+              '--audio-scale',
+              String(Math.min(1 + (avg / 20) * 2, 4))
+            );
+          }
           animationId = requestAnimationFrame(tick);
         };
         tick();
-      } catch (_) { setAudioActive(false); }
+      } catch (_) {
+        // Complete failure (e.g. no Web Audio support) — overlay renders normally without audio
+      }
     };
-    startAudio();
-    return () => { if (animationId) cancelAnimationFrame(animationId); if (audioContext) audioContext.close(); };
-  }, [audioActive, ref]);
 
-  return { audioActive, activate: () => setAudioActive(true) };
+    startAudio();
+
+    return () => {
+      if (animationId) cancelAnimationFrame(animationId);
+      try { fallbackNode?.stop(); } catch (_) {}
+      if (audioCtx) audioCtx.close();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 }
 
 /* ── Lottie Burst ─────────────────────────────────────────────── */
@@ -272,7 +317,7 @@ function StreamStateTakeover({ type, logoUrl, socialSlots }: { type: 'starting'|
 export default function OverlayView({ layout = 'landscape' }: { layout?: 'landscape' | 'portrait' }) {
   const { state } = useSync();
   const facecamRef = useRef<HTMLDivElement>(null);
-  const { audioActive, activate } = useAudioResponsive(facecamRef);
+  useAudioResponsive(facecamRef);
 
   const [showVictory, setShowVictory]         = useState(false);
   const [lastVictoryTrigger, setLVT]          = useState(0);
@@ -376,9 +421,7 @@ export default function OverlayView({ layout = 'landscape' }: { layout?: 'landsc
       <div
         className={`${styles.overlayContainer} ${isPortrait ? styles.portrait : styles.landscape}`}
         style={{ ...themeStyle, transform: `scale(${scale})` } as any}
-        onClick={activate}
       >
-        {!audioActive && <div className={styles.audioHint}>🎙 Click to enable Audio Sync</div>}
 
       <AnimatePresence mode="wait">
         {state.streamState !== 'live' ? (

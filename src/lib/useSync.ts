@@ -112,22 +112,20 @@ export const DEFAULT_STATE: SyncState = {
   ],
 };
 
-export function useSync(suspendSync: boolean = false) {
+export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
   const [state, setState] = useState<SyncState>(DEFAULT_STATE);
-
-  const suspendRef = useRef(suspendSync);
-  useEffect(() => { suspendRef.current = suspendSync; }, [suspendSync]);
 
   const pendingUpdates = useRef<Partial<SyncState>>({});
   const pushTimeout = useRef<NodeJS.Timeout | null>(null);
   const isPushing = useRef(false);
+  const initialFetchDone = useRef(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
     const fetchState = async () => {
-      // Suspend fetch if user is typing or if there are pending/active database POSTs
-      if (suspendRef.current || isPushing.current || Object.keys(pendingUpdates.current).length > 0 || pushTimeout.current !== null) {
+      // Suspend fetch if there are pending/active database POSTs
+      if (isPushing.current || Object.keys(pendingUpdates.current).length > 0 || pushTimeout.current !== null) {
         return; 
       }
 
@@ -137,7 +135,30 @@ export function useSync(suspendSync: boolean = false) {
         });
         if (res.ok) {
           const data = await res.json();
-          setState((prev) => ({ ...prev, ...data }));
+          
+          if (mode === 'admin') {
+            // Admin Panel is ONLY source of truth for streamState and UI stats.
+            // We ONLY sync Alerts after the initial load.
+            if (!initialFetchDone.current) {
+               setState(data);
+               initialFetchDone.current = true;
+            } else {
+               setState((prev) => ({
+                  ...prev,
+                  chatEvent: data.chatEvent,
+                  bgmiAlert: data.bgmiAlert,
+                  supporterSpotlight: data.supporterSpotlight,
+                  latestSubscriber: data.latestSubscriber,
+                  topDonor: data.topDonor,
+                  latestSuperchat: data.latestSuperchat,
+                  latestGpaySupport: data.latestGpaySupport,
+                  latestPaytmSupport: data.latestPaytmSupport,
+               }));
+            }
+          } else {
+            // Overlay Mode syncing
+            setState((prev) => ({ ...prev, ...data }));
+          }
         }
       } catch (err) {
         console.error('Failed to fetch sync state', err);
