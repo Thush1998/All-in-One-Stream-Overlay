@@ -36,6 +36,7 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
   const pushTimeout = useRef<NodeJS.Timeout | null>(null);
   const isPushing = useRef(false);
   const initialFetchDone = useRef(false);
+  const lastInteraction = useRef<number>(0);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -58,18 +59,36 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
                setState(sanitiseState(data) as SyncState);
                initialFetchDone.current = true;
             } else {
-               setState((prev) => ({
-                  ...prev,
-                  chatEvent:          data.chatEvent,
-                  bgmiAlert:          data.bgmiAlert,
-                  triggerHighlight:   Number(data.triggerHighlight) || 0,
-                  supporterSpotlight: data.supporterSpotlight,
-                  latestSubscriber:   data.latestSubscriber,
-                  topDonor:           data.topDonor,
-                  latestSuperchat:    data.latestSuperchat,
-                  latestGpaySupport:  data.latestGpaySupport,
-                  latestPaytmSupport: data.latestPaytmSupport,
-               }));
+               // Interaction lock: If user manually clicked something in the last 30s,
+               // we ignore certain database fields to prevent "state-flipping".
+               const isLocked = (Date.now() - lastInteraction.current) < 30000;
+
+               setState((prev) => {
+                  const newState = { ...prev };
+                  
+                  // Always pull Alerts & Events
+                  newState.chatEvent = data.chatEvent;
+                  newState.bgmiAlert = data.bgmiAlert;
+                  newState.triggerHighlight = Number(data.triggerHighlight) || 0;
+                  newState.supporterSpotlight = data.supporterSpotlight;
+                  newState.latestSubscriber = data.latestSubscriber;
+                  newState.topDonor = data.topDonor;
+                  newState.latestSuperchat = data.latestSuperchat;
+                  newState.latestGpaySupport = data.latestGpaySupport;
+                  newState.latestPaytmSupport = data.latestPaytmSupport;
+
+                  // ONLY pull Stream Status / Stats if lock is expired
+                  if (!isLocked) {
+                    newState.streamState = data.streamState;
+                    newState.killCount = Number(data.killCount) || 0;
+                    newState.finishes = Number(data.finishes) || 0;
+                    newState.dayWins = Number(data.dayWins) || 0;
+                    newState.subscriberCount = Number(data.subscriberCount) || 0;
+                    newState.subscriberGoal = Number(data.subscriberGoal) || 100;
+                  }
+
+                  return newState;
+               });
             }
           } else {
             // Overlay Mode syncing
@@ -104,6 +123,7 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
   const updateState = useCallback((updates: Partial<SyncState>) => {
     // Optimistic UI update immediately
     setState((prev) => {
+      lastInteraction.current = Date.now();
       const updated = { ...prev, ...updates };
       return updated;
     });

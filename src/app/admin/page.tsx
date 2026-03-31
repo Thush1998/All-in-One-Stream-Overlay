@@ -96,6 +96,7 @@ export default function Dashboard() {
   // Local editable copies
   const [localSubCount,  setLocalSubCount]  = useState('0');
   const [localGoal,      setLocalGoal]      = useState('100');
+  const [localStreamState, setLocalStreamState] = useState<'live' | 'starting' | 'paused' | 'ending'>('live');
   const [logoDataUrl,    setLogoDataUrl]     = useState('');
   const [newsText,       setNewsText]        = useState('');
   const [fanName,        setFanName]         = useState('');
@@ -120,6 +121,7 @@ export default function Dashboard() {
 
     setLocalSubCount(state.subscriberCount?.toString() || '0');
     setLocalGoal(state.subscriberGoal?.toString() || '100');
+    setLocalStreamState(state.streamState || 'live');
     setLogoDataUrl(state.logoDataUrl || '');
     setQrCodeDataUrl(state.qrCodeUrl || '');
     setNewsText(state.newsTickerText || '');
@@ -244,10 +246,10 @@ export default function Dashboard() {
           <h2 className={styles.cardTitle}>🎛️ Stream State Controls</h2>
           
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-            <button className={`${styles.button} ${state.streamState === 'starting' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'starting' })}>STARTING</button>
-            <button className={`${styles.button} ${state.streamState === 'live' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'live' })}>LIVE</button>
-            <button className={`${styles.button} ${state.streamState === 'paused' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'paused' })}>PAUSED</button>
-            <button className={`${styles.button} ${state.streamState === 'ending' ? styles.buttonPink : ''}`} onClick={() => updateState({ streamState: 'ending' })}>ENDING</button>
+            <button className={`${styles.button} ${localStreamState === 'starting' ? styles.buttonPink : ''}`} onClick={(e) => { e.preventDefault(); setLocalStreamState('starting'); updateState({ streamState: 'starting' }); }}>STARTING</button>
+            <button className={`${styles.button} ${localStreamState === 'live' ? styles.buttonPink : ''}`} onClick={(e) => { e.preventDefault(); setLocalStreamState('live'); updateState({ streamState: 'live' }); }}>LIVE</button>
+            <button className={`${styles.button} ${localStreamState === 'paused' ? styles.buttonPink : ''}`} onClick={(e) => { e.preventDefault(); setLocalStreamState('paused'); updateState({ streamState: 'paused' }); }}>PAUSED</button>
+            <button className={`${styles.button} ${localStreamState === 'ending' ? styles.buttonPink : ''}`} onClick={(e) => { e.preventDefault(); setLocalStreamState('ending'); updateState({ streamState: 'ending' }); }}>ENDING</button>
           </div>
 
           <div style={{ padding: '1rem', background: 'rgba(0,0,0,0.3)', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)' }}>
@@ -366,8 +368,8 @@ export default function Dashboard() {
               style={{ resize:'vertical', minHeight:'60px' }}
             />
             <div style={{ display:'flex', gap:'10px', marginTop:'8px' }}>
-              <button className={styles.button} style={{ flex:1 }} onClick={() => updateState({ newsTickerText: newsText })}>Set Ticker ↗</button>
-              <button className={styles.buttonPink} style={{ border:'1px solid var(--neon-pink)', background:'transparent', color:'var(--neon-pink)', borderRadius:'6px', padding:'0.6rem 1rem', cursor:'pointer', fontFamily:'inherit', fontWeight:700 }} onClick={() => { setNewsText(''); updateState({ newsTickerText:'' }); }}>Clear</button>
+              <button className={styles.button} style={{ flex:1 }} onClick={(e) => { e.preventDefault(); updateState({ newsTickerText: newsText }); }}>Set Ticker ↗</button>
+              <button className={styles.buttonPink} style={{ border:'1px solid var(--neon-pink)', background:'transparent', color:'var(--neon-pink)', borderRadius:'6px', padding:'0.6rem 1rem', cursor:'pointer', fontFamily:'inherit', fontWeight:700 }} onClick={(e) => { e.preventDefault(); setNewsText(''); updateState({ newsTickerText:'' }); }}>Clear</button>
             </div>
           </div>
         </div>
@@ -407,7 +409,7 @@ export default function Dashboard() {
               <button className={styles.stepperBtn} onClick={() => changeDayWins(1)}>+</button>
             </div>
           </div>
-          <button className={styles.button} style={{ marginTop:'0.5rem' }} onClick={() => updateState({ killCount:0, finishes:0, dayWins:0 })}>
+          <button className={styles.button} style={{ marginTop:'0.5rem' }} onClick={(e) => { e.preventDefault(); updateState({ killCount:0, finishes:0, dayWins:0 }); }}>
             ↺ Reset Round/Day
           </button>
         </div>
@@ -425,7 +427,7 @@ export default function Dashboard() {
             <label className={styles.label}>Paytm</label>
             <input type="text" className={styles.input} placeholder="e.g. 9876543210" value={localDonation.paytm} onChange={e => setLocalDonation({...localDonation, paytm: e.target.value})} />
           </div>
-          <button className={`${styles.button} ${styles.buttonPink}`} style={{ marginTop:'0.5rem' }} onClick={() => updateState({ donationDetails: localDonation })}>
+          <button className={`${styles.button} ${styles.buttonPink}`} style={{ marginTop:'0.5rem' }} onClick={(e) => { e.preventDefault(); updateState({ donationDetails: localDonation }); }}>
             🔄 Push Donation Text
           </button>
         </div>
@@ -440,7 +442,7 @@ export default function Dashboard() {
                 key={a.key}
                 className={styles.alertTypeBtn}
                 style={{ '--alert-color': a.color } as any}
-                onClick={() => fireAlert(a.key)}
+                onClick={(e) => { e.preventDefault(); fireAlert(a.key); }}
               >
                 {a.label}
               </button>
@@ -476,7 +478,7 @@ export default function Dashboard() {
             <label className={styles.label}>Latest Paytm Supporter</label>
             <input type="text" className={styles.input} placeholder="e.g. Aditi" value={localLatestPaytm} onChange={e => setLocalLatestPaytm(e.target.value)} />
           </div>
-          <button className={`${styles.button} ${styles.buttonPink}`} style={{ marginTop:'0.5rem' }} onClick={() => updateState({ latestSubscriber: localLatestSub, topDonor: localTopDonor, latestSuperchat: localLatestSuperchat, latestGpaySupport: localLatestGpay, latestPaytmSupport: localLatestPaytm })}>
+          <button className={`${styles.button} ${styles.buttonPink}`} style={{ marginTop:'0.5rem' }} onClick={(e) => { e.preventDefault(); updateState({ latestSubscriber: localLatestSub, topDonor: localTopDonor, latestSuperchat: localLatestSuperchat, latestGpaySupport: localLatestGpay, latestPaytmSupport: localLatestPaytm }); }}>
             🔄 Push Latest Events
           </button>
         </div>
@@ -495,7 +497,7 @@ export default function Dashboard() {
           </div>
           <button
             className={`${styles.button} ${styles.spotlightBtn}`}
-            onClick={() => { if (fanName.trim()) { updateState({ supporterSpotlight: { id: Date.now(), name: fanName.trim() } }); setFanName(''); } }}
+            onClick={(e) => { e.preventDefault(); if (fanName.trim()) { updateState({ supporterSpotlight: { id: Date.now(), name: fanName.trim() } }); setFanName(''); } }}
             disabled={!fanName.trim()}
           >✨ Spotlight NOW!</button>
         </div>
@@ -531,12 +533,13 @@ export default function Dashboard() {
               updateState({ 
                 subscriberCount: parseInt(localSubCount)||0, 
                 subscriberGoal: parseInt(localGoal)||100, 
+                streamState: localStreamState,
                 logoDataUrl, 
                 qrCodeUrl: qrCodeDataUrl,
                 latestSubscriber: localLatestSub,
                 topDonor: localTopDonor,
                 latestSuperchat: localLatestSuperchat,
-                latestGpaySupport: localLatestGpay,
+                latestGpaySupport:  localLatestGpay,
                 latestPaytmSupport: localLatestPaytm,
                 newsTickerText: newsText
                });

@@ -66,8 +66,8 @@ export async function POST(req: Request) {
       delete sanitised.socialSlots; // reject malformed array
     }
 
-    // Layer: DEFAULT_STATE → current globalState → incoming patch, then coerce all numerics
-    globalState = coerceNumerics({ ...DEFAULT_STATE, ...globalState, ...sanitised });
+    // Layer: current globalState → incoming patch, then coerce all numerics
+    globalState = coerceNumerics({ ...globalState, ...sanitised });
 
     return NextResponse.json(globalState, {
       headers: {
