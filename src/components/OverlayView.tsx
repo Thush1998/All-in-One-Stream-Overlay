@@ -355,16 +355,18 @@ export default function OverlayView({ layout = 'landscape' }: { layout?: 'landsc
   }, [state.subscriberCount]);
 
   useEffect(() => {
-    if (state.triggerVictory > lastVictoryTrigger) {
-      setShowVictory(true); setLVT(state.triggerVictory);
+    const tv = Number(state.triggerVictory) || 0;
+    if (tv > lastVictoryTrigger) {
+      setShowVictory(true); setLVT(tv);
       setTimeout(() => setShowVictory(false), 4000);
     }
   }, [state.triggerVictory, lastVictoryTrigger]);
 
   useEffect(() => {
-    if (state.triggerHighlight > lastHighlightTrigger && state.bgmiAlert) {
+    const th = Number(state.triggerHighlight) || 0;
+    if (th > lastHighlightTrigger && state.bgmiAlert) {
       setActiveBgmiAlert(state.bgmiAlert);
-      setLHT(state.triggerHighlight);
+      setLHT(th);
       playHighlightSFX();
       setTimeout(() => setActiveBgmiAlert(null), 3500);
     }
@@ -385,7 +387,7 @@ export default function OverlayView({ layout = 'landscape' }: { layout?: 'landsc
     }
   }, [state.chatEvent, activeChat]);
 
-  const percentage = Math.min(100, (state.subscriberCount / (state.subscriberGoal || 1)) * 100);
+  const percentage = Math.min(100, ((Number(state.subscriberCount) || 0) / (Number(state.subscriberGoal) || 1)) * 100);
   const goalReached = percentage >= 100;
 
   const renderFireworks = (count: number) =>

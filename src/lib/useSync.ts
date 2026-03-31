@@ -112,6 +112,38 @@ export const DEFAULT_STATE: SyncState = {
   ],
 };
 
+// ── Numeric sanitiser ─────────────────────────────────────────
+// Applied to every value received from the API so NaN / undefined / null
+// never enters React state and corrupts arithmetic or comparisons.
+const NUMERIC_FIELDS: (keyof SyncState)[] = [
+  'subscriberCount', 'subscriberGoal',
+  'triggerVictory',  'triggerHighlight',
+  'killCount',       'finishes',        'dayWins',
+];
+
+function sanitiseState(data: Partial<SyncState>): Partial<SyncState> {
+  const out: Partial<SyncState> = { ...data };
+  for (const key of NUMERIC_FIELDS) {
+    if (key in out) {
+      (out as any)[key] = Number((out as any)[key]) || 0;
+    }
+  }
+  // Guard nested objects
+  if (out.themeColors && (typeof out.themeColors !== 'object')) {
+    delete out.themeColors;
+  }
+  if (out.donationDetails && (typeof out.donationDetails !== 'object')) {
+    delete out.donationDetails;
+  }
+  if (out.socialSlots !== undefined && !Array.isArray(out.socialSlots)) {
+    delete out.socialSlots;
+  }
+  if (out.customChats !== undefined && !Array.isArray(out.customChats)) {
+    delete out.customChats;
+  }
+  return out;
+}
+
 export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
   const [state, setState] = useState<SyncState>(DEFAULT_STATE);
 
@@ -137,27 +169,26 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
           const data = await res.json();
           
           if (mode === 'admin') {
-            // Admin Panel is ONLY source of truth for streamState and UI stats.
-            // We ONLY sync Alerts after the initial load.
             if (!initialFetchDone.current) {
-               setState(data);
+               setState(sanitiseState(data) as SyncState);
                initialFetchDone.current = true;
             } else {
                setState((prev) => ({
                   ...prev,
-                  chatEvent: data.chatEvent,
-                  bgmiAlert: data.bgmiAlert,
+                  chatEvent:          data.chatEvent,
+                  bgmiAlert:          data.bgmiAlert,
+                  triggerHighlight:   Number(data.triggerHighlight) || 0,
                   supporterSpotlight: data.supporterSpotlight,
-                  latestSubscriber: data.latestSubscriber,
-                  topDonor: data.topDonor,
-                  latestSuperchat: data.latestSuperchat,
-                  latestGpaySupport: data.latestGpaySupport,
+                  latestSubscriber:   data.latestSubscriber,
+                  topDonor:           data.topDonor,
+                  latestSuperchat:    data.latestSuperchat,
+                  latestGpaySupport:  data.latestGpaySupport,
                   latestPaytmSupport: data.latestPaytmSupport,
                }));
             }
           } else {
             // Overlay Mode syncing
-            setState((prev) => ({ ...prev, ...data }));
+            setState((prev) => ({ ...prev, ...sanitiseState(data) }));
           }
         }
       } catch (err) {

@@ -174,14 +174,14 @@ export default function Dashboard() {
 
   // BGMI alert
   const fireAlert = (key: BgmiAlertKey) => {
-    updateState({ bgmiAlert: key, triggerHighlight: state.triggerHighlight + 1 });
+    updateState({ bgmiAlert: key, triggerHighlight: (Number(state.triggerHighlight) || 0) + 1 });
     if (sfxEnabled) playAdminSFX();
   };
 
-  // Steppers
-  const changeKills    = (d: number) => updateState({ killCount:   Math.max(0, state.killCount + d) });
-  const changeFinishes = (d: number) => updateState({ finishes:    Math.max(0, state.finishes + d) });
-  const changeDayWins  = (d: number) => updateState({ dayWins:     Math.max(0, state.dayWins + d) });
+  // Steppers — Number() coercion prevents NaN if state arrives as string or undefined
+  const changeKills    = (d: number) => updateState({ killCount: Math.max(0, (Number(state.killCount)   || 0) + d) });
+  const changeFinishes = (d: number) => updateState({ finishes:  Math.max(0, (Number(state.finishes)    || 0) + d) });
+  const changeDayWins  = (d: number) => updateState({ dayWins:   Math.max(0, (Number(state.dayWins)     || 0) + d) });
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -395,7 +395,7 @@ export default function Dashboard() {
             <label className={styles.label}>💀 Kills</label>
             <div className={styles.statStepper}>
               <button className={styles.stepperBtn} onClick={() => changeKills(-1)}>−</button>
-              <span className={styles.stepperValue}>{state.killCount}</span>
+              <span className={styles.stepperValue}>{Number(state.killCount) || 0}</span>
               <button className={styles.stepperBtn} onClick={() => changeKills(1)}>+</button>
             </div>
           </div>
@@ -403,7 +403,7 @@ export default function Dashboard() {
             <label className={styles.label}>🐔 Finishes</label>
             <div className={styles.statStepper}>
               <button className={styles.stepperBtn} onClick={() => changeFinishes(-1)}>−</button>
-              <span className={styles.stepperValue}>{state.finishes}</span>
+              <span className={styles.stepperValue}>{Number(state.finishes) || 0}</span>
               <button className={styles.stepperBtn} onClick={() => changeFinishes(1)}>+</button>
             </div>
           </div>
@@ -411,7 +411,7 @@ export default function Dashboard() {
             <label className={styles.label}>🏆 Day Wins (Chicken Dinners)</label>
             <div className={styles.statStepper}>
               <button className={styles.stepperBtn} onClick={() => changeDayWins(-1)}>−</button>
-              <span className={styles.stepperValue}>{state.dayWins}</span>
+              <span className={styles.stepperValue}>{Number(state.dayWins) || 0}</span>
               <button className={styles.stepperBtn} onClick={() => changeDayWins(1)}>+</button>
             </div>
           </div>
