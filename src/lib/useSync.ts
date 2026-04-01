@@ -7,8 +7,8 @@ import type { ChatEvent, SupporterSpotlight, PlatformKey, SocialSlot, Corner, Bg
 export type { ChatEvent, SupporterSpotlight, PlatformKey, SocialSlot, Corner, BgmiAlertKey, ThemeColors, SyncState };
 export { DEFAULT_STATE, NUMERIC_FIELDS };
 
-function sanitiseState(data: Partial<SyncState>): Partial<SyncState> {
-  const out: Partial<SyncState> = { ...data };
+function sanitiseState(raw: Partial<SyncState>): Partial<SyncState> {
+  const out: Partial<SyncState> = { ...raw };
   for (const key of NUMERIC_FIELDS) {
     if (key in out) {
       (out as any)[key] = Number((out as any)[key]) || 0;
@@ -54,8 +54,8 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
 
       try {
         const { data, error } = await supabase
-          .from('stream_state')
-          .select('state')
+          .from('settings')
+          .select('data')
           .eq('id', 1)
           .single();
 
@@ -67,8 +67,8 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
           throw error;
         }
 
-        if (data && data.state) {
-          const merged = { ...DEFAULT_STATE, ...sanitiseState(data.state) } as SyncState;
+        if (data && data.data) {
+          const merged = { ...DEFAULT_STATE, ...sanitiseState(data.data) } as SyncState;
           if (mode === 'admin') {
             if (!initialFetchDone.current) {
                setState(merged);
@@ -97,18 +97,19 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     if (mode !== 'admin') {
       // Subscribe to real-time changes
       channel = supabase
-        .channel('schema-db-changes')
+        .channel('settings_change')
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
-            table: 'stream_state',
+            table: 'settings',
             filter: 'id=eq.1',
           },
           (payload) => {
-            if (payload.new && payload.new.state) {
-               const merged = { ...DEFAULT_STATE, ...sanitiseState(payload.new.state) } as SyncState;
+            if (payload.new && payload.new.data) {
+               const merged = { ...DEFAULT_STATE, ...sanitiseState(payload.new.data) } as SyncState;
+               // Analagous to setOverlayData(payload.new):
                setState((prev) => {
                  if (prev.syncId !== merged.syncId) {
                    return merged;
@@ -160,10 +161,14 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
       isPushing.current = true;
       
       try {
-        await supabase
-          .from('stream_state')
-          .update({ state: payloadToPush, updated_at: new Date().toISOString() })
-          .eq('id', 1);
+        const { data, error } = await supabase
+          .from('settings')
+          .upsert({ id: 1, data: payloadToPush })
+          .select();
+          
+        if (error) throw error;
+        
+        console.log('Data Saved:', data);
       } catch (err) {
         console.error('Failed to push state update', err);
       } finally {
