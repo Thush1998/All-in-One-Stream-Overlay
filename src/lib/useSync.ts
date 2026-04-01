@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from './supabase';
 
 import { SyncState, DEFAULT_STATE, NUMERIC_FIELDS } from './syncTypes';
 import type { ChatEvent, SupporterSpotlight, PlatformKey, SocialSlot, Corner, BgmiAlertKey, ThemeColors } from './syncTypes';
@@ -36,7 +37,11 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
   const pushTimeout = useRef<NodeJS.Timeout | null>(null);
   const isPushing = useRef(false);
   const initialFetchDone = useRef(false);
-  const lastInteraction = useRef<number>(0);
+  const stateRef = useRef<SyncState>(DEFAULT_STATE);
+
+  useEffect(() => {
+    stateRef.current = state;
+  }, [state]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -48,25 +53,34 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
       }
 
       try {
-        const res = await fetch(`/api/sync?t=${Date.now()}`, {
-          cache: 'no-store',
-        });
-        if (res.ok) {
-          const data = await res.json();
-          
+        const { data, error } = await supabase
+          .from('stream_state')
+          .select('state')
+          .eq('id', 1)
+          .single();
+
+        if (error) {
+          if (error.code === 'PGRST116') {
+             // No rows returned
+             return;
+          }
+          throw error;
+        }
+
+        if (data && data.state) {
+          const merged = { ...DEFAULT_STATE, ...sanitiseState(data.state) } as SyncState;
           if (mode === 'admin') {
             if (!initialFetchDone.current) {
-               setState(sanitiseState(data) as SyncState);
+               setState(merged);
                initialFetchDone.current = true;
             }
           } else {
             // Overlay Mode syncing
-            // Fully replace state if syncId changes to perfectly match the Admin snapshot
             setState((prev) => {
-              if (prev.syncId !== data.syncId) {
-                return sanitiseState(data) as SyncState;
+              if (prev.syncId !== merged.syncId) {
+                return merged;
               }
-              return { ...prev, ...sanitiseState(data) };
+              return { ...prev, ...merged };
             });
           }
         }
@@ -78,10 +92,33 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     // Initial fetch
     fetchState();
 
-    // Polling interval: fetch latest state every 2 seconds ONLY for overlay
-    let intervalId: NodeJS.Timeout | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
     if (mode !== 'admin') {
-      intervalId = setInterval(fetchState, 2000);
+      // Subscribe to real-time changes
+      channel = supabase
+        .channel('schema-db-changes')
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'stream_state',
+            filter: 'id=eq.1',
+          },
+          (payload) => {
+            if (payload.new && payload.new.state) {
+               const merged = { ...DEFAULT_STATE, ...sanitiseState(payload.new.state) } as SyncState;
+               setState((prev) => {
+                 if (prev.syncId !== merged.syncId) {
+                   return merged;
+                 }
+                 return { ...prev, ...merged };
+               });
+            }
+          }
+        )
+        .subscribe();
     }
 
     // Also listen to postMessage from same-page scripts to force a re-render
@@ -93,10 +130,13 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     window.addEventListener('message', handleMessage);
 
     return () => {
-      if (intervalId) clearInterval(intervalId);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
       window.removeEventListener('message', handleMessage);
+      if (pushTimeout.current) clearTimeout(pushTimeout.current);
     };
-  }, []);
+  }, [mode]);
 
   const updateState = useCallback((updates: Partial<SyncState>) => {
     const syncId = String(Date.now());
@@ -104,7 +144,6 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
 
     // Optimistic UI update immediately
     setState((prev) => {
-      lastInteraction.current = Date.now();
       const updated = { ...prev, ...finalUpdates };
       return updated;
     });
@@ -115,20 +154,16 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     if (pushTimeout.current) clearTimeout(pushTimeout.current);
     
     pushTimeout.current = setTimeout(async () => {
-      const payload = { ...pendingUpdates.current };
+      const payloadToPush = { ...stateRef.current, ...pendingUpdates.current };
       pendingUpdates.current = {};
       pushTimeout.current = null;
       isPushing.current = true;
       
       try {
-        await fetch('/api/sync', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-          cache: 'no-store',
-        });
+        await supabase
+          .from('stream_state')
+          .update({ state: payloadToPush, updated_at: new Date().toISOString() })
+          .eq('id', 1);
       } catch (err) {
         console.error('Failed to push state update', err);
       } finally {
