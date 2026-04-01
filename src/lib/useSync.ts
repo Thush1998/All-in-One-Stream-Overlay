@@ -98,28 +98,22 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
 
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
-    if (mode !== 'admin') {
+    if (mode === 'overlay') {
       // Subscribe to real-time changes
       channel = supabase
-        .channel('settings_change')
+        .channel('schema-db-changes')
         .on(
           'postgres_changes',
           {
             event: 'UPDATE',
             schema: 'public',
             table: 'settings',
-            filter: 'id=eq.1',
           },
           (payload) => {
+            console.log('Real-time update received!', payload.new);
             if (payload.new && payload.new.data) {
                const merged = { ...DEFAULT_STATE, ...sanitiseState(payload.new.data) } as SyncState;
-               // Analagous to setOverlayData(payload.new):
-               setState((prev) => {
-                 if (prev.syncId !== merged.syncId) {
-                   return merged;
-                 }
-                 return { ...prev, ...merged };
-               });
+               setState(merged);
             }
           }
         )
