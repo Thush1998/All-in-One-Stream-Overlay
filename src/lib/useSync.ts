@@ -55,8 +55,8 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
 
       try {
         const { data, error } = await supabase
-          .from('settings')
-          .select('data')
+          .from('stream_state')
+          .select('state')
           .eq('id', 1)
           .single();
 
@@ -69,8 +69,8 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
           throw error;
         }
 
-        if (data && data.data) {
-          const merged = { ...DEFAULT_STATE, ...sanitiseState(data.data) } as SyncState;
+        if (data && data.state) {
+          const merged = { ...DEFAULT_STATE, ...sanitiseState(data.state) } as SyncState;
           if (mode === 'admin') {
             if (!initialFetchDone.current) {
                setState(merged);
@@ -99,7 +99,7 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     if (mode === 'overlay') {
-      // Subscribe to real-time changes on the 'settings' table
+      // Subscribe to real-time changes on the 'stream_state' table
       channel = supabase
         .channel('overlay-updates')
         .on(
@@ -107,11 +107,11 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
           {
             event: '*',
             schema: 'public',
-            table: 'settings',
+            table: 'stream_state',
           },
           (payload) => {
             console.log('SUPABASE_REALTIME_SIGNAL:', payload);
-            const newData = (payload.new as any)?.data;
+            const newData = (payload.new as any)?.state;
             if (newData) {
               const sanitised = sanitiseState(newData);
               // Functional update: merge into previous state to prevent data loss
@@ -164,8 +164,8 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
       
       try {
         const { data, error } = await supabase
-          .from('settings')
-          .upsert({ id: 1, data: payloadToPush })
+          .from('stream_state')
+          .upsert({ id: 1, state: payloadToPush })
           .select();
           
         if (error) throw error;
