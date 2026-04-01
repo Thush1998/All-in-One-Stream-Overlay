@@ -99,25 +99,29 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     if (mode === 'overlay') {
-      // Subscribe to real-time changes
+      // Subscribe to real-time changes on the 'settings' table
       channel = supabase
-        .channel('schema-db-changes')
+        .channel('overlay-updates')
         .on(
           'postgres_changes',
           {
-            event: 'UPDATE',
+            event: '*',
             schema: 'public',
             table: 'settings',
           },
           (payload) => {
-            console.log('Real-time update received!', payload.new);
-            if (payload.new && payload.new.data) {
-               const merged = { ...DEFAULT_STATE, ...sanitiseState(payload.new.data) } as SyncState;
-               setState(merged);
+            console.log('SUPABASE_REALTIME_SIGNAL:', payload);
+            const newData = (payload.new as any)?.data;
+            if (newData) {
+              const sanitised = sanitiseState(newData);
+              // Functional update: merge into previous state to prevent data loss
+              setState((prev) => ({ ...DEFAULT_STATE, ...prev, ...sanitised } as SyncState));
             }
           }
         )
-        .subscribe();
+        .subscribe((status) => {
+          console.log('SUPABASE_CHANNEL_STATUS:', status);
+        });
     }
 
     // Also listen to postMessage from same-page scripts to force a re-render
