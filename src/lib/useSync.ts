@@ -32,6 +32,7 @@ function sanitiseState(raw: Partial<SyncState>): Partial<SyncState> {
 
 export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
   const [state, setState] = useState<SyncState>(DEFAULT_STATE);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   const pendingUpdates = useRef<Partial<SyncState>>({});
   const pushTimeout = useRef<NodeJS.Timeout | null>(null);
@@ -62,6 +63,7 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
         if (error) {
           if (error.code === 'PGRST116') {
              // No rows returned
+             setIsLoaded(true);
              return;
           }
           throw error;
@@ -84,8 +86,10 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
             });
           }
         }
+        setIsLoaded(true);
       } catch (err) {
         console.error('Failed to fetch sync state', err);
+        setIsLoaded(true); // Don't block indefinitely on error
       }
     };
 
@@ -177,5 +181,5 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     }, 500); // 500ms debounce
   }, []);
 
-  return { state, updateState };
+  return { state, updateState, isLoaded };
 }

@@ -90,7 +90,7 @@ export default function Dashboard() {
     return () => window.removeEventListener('resize', scale);
   }, [isAuthenticated]);
 
-  const { state, updateState } = useSync('admin');
+  const { state, updateState, isLoaded } = useSync('admin');
   const isHydrated = useRef(false);
 
   // Local editable copies
@@ -112,16 +112,11 @@ export default function Dashboard() {
   const [localChats,     setLocalChats]      = useState(state.customChats ?? []);
 
   useEffect(() => {
-    // Only update local fields if we haven't hydrated yet AND the state actually has data
-    if (isHydrated.current) return;
+    if (!isLoaded || isHydrated.current) return;
     
-    // Check if state is non-empty (ignore default state if it's still being fetched)
-    const hasData = state.subscriberCount !== 0 || state.newsTickerText !== '' || state.logoDataUrl !== '';
-    if (!hasData) return;
-
     setLocalSubCount(state.subscriberCount?.toString() || '0');
     setLocalGoal(state.subscriberGoal?.toString() || '100');
-    // Removed setLocalStreamState per instruction to stop auto-state switching
+    setLocalStreamState(state.streamState || 'live'); // Restored so state persists on reload
     setLogoDataUrl(state.logoDataUrl || '');
     setQrCodeDataUrl(state.qrCodeUrl || '');
     setNewsText(state.newsTickerText || '');
@@ -139,7 +134,7 @@ export default function Dashboard() {
     setLocalChats(state.customChats ?? []);
     
     isHydrated.current = true;
-  }, [state]);
+  }, [state, isLoaded]);
 
   useEffect(() => {
     const loggedIn = localStorage.getItem('dxq_auth');
@@ -531,6 +526,7 @@ export default function Dashboard() {
             onClick={(e) => {
               e.preventDefault();
               updateState({ 
+                ...state, // Push EVERYTHING
                 subscriberCount: parseInt(localSubCount)||0, 
                 subscriberGoal: parseInt(localGoal)||100, 
                 streamState: localStreamState,
@@ -541,7 +537,10 @@ export default function Dashboard() {
                 latestSuperchat: localLatestSuperchat,
                 latestGpaySupport:  localLatestGpay,
                 latestPaytmSupport: localLatestPaytm,
-                newsTickerText: newsText
+                newsTickerText: newsText,
+                socialSlots: localSlots,
+                donationDetails: localDonation,
+                customChats: localChats
                });
             }}>
             Save &amp; Sync All
