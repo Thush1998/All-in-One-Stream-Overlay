@@ -397,8 +397,9 @@ export default function OverlayView({ layout = 'landscape' }: { layout?: 'landsc
       return <div key={i} className={styles.glimmer} style={{ '--tx': tx, '--ty': ty, left: '50%', top: '50%' } as any} />;
     });
 
-  const { fontFamily, facecamCorner, newsTickerText, socialSlots, showBgmiStats, dayWins } = state;
-  // Guard nested objects — they can be undefined if the API returned partial/corrupt state
+  const { fontFamily, facecamCorner, newsTickerText, showBgmiStats, dayWins } = state;
+  // Guard arrays and nested objects — they can be undefined if the API returned partial/corrupt state
+  const socialSlots   = state.socialSlots   || [];
   const themeColors   = state.themeColors   ?? { primary: '#00f3ff', secondary: '#ff0055' };
   const donationDetails = state.donationDetails ?? { gpay: '', paytm: '', superchat: '' };
 

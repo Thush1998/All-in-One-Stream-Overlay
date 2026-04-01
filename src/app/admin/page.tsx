@@ -121,7 +121,7 @@ export default function Dashboard() {
 
     setLocalSubCount(state.subscriberCount?.toString() || '0');
     setLocalGoal(state.subscriberGoal?.toString() || '100');
-    setLocalStreamState(state.streamState || 'live');
+    // Removed setLocalStreamState per instruction to stop auto-state switching
     setLogoDataUrl(state.logoDataUrl || '');
     setQrCodeDataUrl(state.qrCodeUrl || '');
     setNewsText(state.newsTickerText || '');
@@ -191,7 +191,7 @@ export default function Dashboard() {
     if (!file) return;
     if (file.size > 2*1024*1024) { alert('Keep QR under 2MB'); return; }
     const reader = new FileReader();
-    reader.onloadend = () => { setQrCodeDataUrl(reader.result as string); updateState({ qrCodeUrl: reader.result as string }); };
+    reader.onloadend = () => { setQrCodeDataUrl(reader.result as string); };
     reader.readAsDataURL(file);
   };
 

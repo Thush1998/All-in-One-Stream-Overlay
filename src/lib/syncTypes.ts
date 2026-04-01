@@ -39,6 +39,7 @@ export type ThemeColors = {
 };
 
 export type SyncState = {
+  syncId: string;
   subscriberCount: number;
   subscriberGoal: number;
   triggerVictory: number;
@@ -85,6 +86,7 @@ export type SyncState = {
 // This is the single source of truth for cold-start and fallback values.
 
 export const DEFAULT_STATE: SyncState = {
+  syncId: 'initial',
   subscriberCount:    0,
   subscriberGoal:     100,
   triggerVictory:     0,

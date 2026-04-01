@@ -48,7 +48,7 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
       }
 
       try {
-        const res = await fetch('/api/sync', {
+        const res = await fetch(`/api/sync?t=${Date.now()}`, {
           cache: 'no-store',
         });
         if (res.ok) {
@@ -58,41 +58,16 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
             if (!initialFetchDone.current) {
                setState(sanitiseState(data) as SyncState);
                initialFetchDone.current = true;
-            } else {
-               // Interaction lock: If user manually clicked something in the last 30s,
-               // we ignore certain database fields to prevent "state-flipping".
-               const isLocked = (Date.now() - lastInteraction.current) < 30000;
-
-               setState((prev) => {
-                  const newState = { ...prev };
-                  
-                  // Always pull Alerts & Events
-                  newState.chatEvent = data.chatEvent;
-                  newState.bgmiAlert = data.bgmiAlert;
-                  newState.triggerHighlight = Number(data.triggerHighlight) || 0;
-                  newState.supporterSpotlight = data.supporterSpotlight;
-                  newState.latestSubscriber = data.latestSubscriber;
-                  newState.topDonor = data.topDonor;
-                  newState.latestSuperchat = data.latestSuperchat;
-                  newState.latestGpaySupport = data.latestGpaySupport;
-                  newState.latestPaytmSupport = data.latestPaytmSupport;
-
-                  // ONLY pull Stream Status / Stats if lock is expired
-                  if (!isLocked) {
-                    newState.streamState = data.streamState;
-                    newState.killCount = Number(data.killCount) || 0;
-                    newState.finishes = Number(data.finishes) || 0;
-                    newState.dayWins = Number(data.dayWins) || 0;
-                    newState.subscriberCount = Number(data.subscriberCount) || 0;
-                    newState.subscriberGoal = Number(data.subscriberGoal) || 100;
-                  }
-
-                  return newState;
-               });
             }
           } else {
             // Overlay Mode syncing
-            setState((prev) => ({ ...prev, ...sanitiseState(data) }));
+            // Fully replace state if syncId changes to perfectly match the Admin snapshot
+            setState((prev) => {
+              if (prev.syncId !== data.syncId) {
+                return sanitiseState(data) as SyncState;
+              }
+              return { ...prev, ...sanitiseState(data) };
+            });
           }
         }
       } catch (err) {
@@ -103,8 +78,11 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     // Initial fetch
     fetchState();
 
-    // Polling interval: fetch latest state every 2 seconds
-    const intervalId = setInterval(fetchState, 2000);
+    // Polling interval: fetch latest state every 2 seconds ONLY for overlay
+    let intervalId: NodeJS.Timeout | null = null;
+    if (mode !== 'admin') {
+      intervalId = setInterval(fetchState, 2000);
+    }
 
     // Also listen to postMessage from same-page scripts to force a re-render
     const handleMessage = (event: MessageEvent) => {
@@ -115,21 +93,24 @@ export function useSync(mode: 'admin' | 'overlay' = 'overlay') {
     window.addEventListener('message', handleMessage);
 
     return () => {
-      clearInterval(intervalId);
+      if (intervalId) clearInterval(intervalId);
       window.removeEventListener('message', handleMessage);
     };
   }, []);
 
   const updateState = useCallback((updates: Partial<SyncState>) => {
+    const syncId = String(Date.now());
+    const finalUpdates = { ...updates, syncId };
+
     // Optimistic UI update immediately
     setState((prev) => {
       lastInteraction.current = Date.now();
-      const updated = { ...prev, ...updates };
+      const updated = { ...prev, ...finalUpdates };
       return updated;
     });
 
     // Accumulate updates for debounced database write
-    pendingUpdates.current = { ...pendingUpdates.current, ...updates };
+    pendingUpdates.current = { ...pendingUpdates.current, ...finalUpdates };
 
     if (pushTimeout.current) clearTimeout(pushTimeout.current);
     
